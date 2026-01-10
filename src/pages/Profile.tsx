@@ -18,7 +18,9 @@ import {
   ListMusic,
   Trash2,
   Heart,
-  X
+  X,
+  Search,
+  Check
 } from "lucide-react";
 import {
   Dialog,
@@ -28,6 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { problems } from "@/data/problems";
 
 interface PlaylistProblem {
   id: number;
@@ -102,14 +105,19 @@ export default function Profile() {
 
   const [playlists, setPlaylists] = useState<Playlist[]>(initialPlaylists);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAddProblemsOpen, setIsAddProblemsOpen] = useState(false);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [problemSearchQuery, setProblemSearchQuery] = useState("");
   const [newPlaylist, setNewPlaylist] = useState({ title: "", description: "" });
   const [expandedPlaylist, setExpandedPlaylist] = useState<string | null>(null);
+  const [justCreatedPlaylistId, setJustCreatedPlaylistId] = useState<string | null>(null);
 
   const handleCreatePlaylist = () => {
     if (!newPlaylist.title.trim()) return;
     
+    const playlistId = Date.now().toString();
     const playlist: Playlist = {
-      id: Date.now().toString(),
+      id: playlistId,
       title: newPlaylist.title,
       description: newPlaylist.description,
       problems: [],
@@ -119,6 +127,9 @@ export default function Profile() {
     setPlaylists([playlist, ...playlists]);
     setNewPlaylist({ title: "", description: "" });
     setIsCreateOpen(false);
+    setJustCreatedPlaylistId(playlistId);
+    setSelectedPlaylistId(playlistId);
+    setIsAddProblemsOpen(true);
   };
 
   const handleDeletePlaylist = (id: string) => {
@@ -132,6 +143,38 @@ export default function Profile() {
         : p
     ));
   };
+
+  const handleAddProblemToPlaylist = (playlistId: string, problem: PlaylistProblem) => {
+    setPlaylists(playlists.map(p => {
+      if (p.id === playlistId) {
+        // Check if problem already exists
+        if (p.problems.some(prob => prob.id === problem.id)) {
+          return p;
+        }
+        return { ...p, problems: [...p.problems, problem] };
+      }
+      return p;
+    }));
+  };
+
+  const handleRemoveProblemFromPlaylist = (playlistId: string, problemId: number) => {
+    setPlaylists(playlists.map(p => 
+      p.id === playlistId 
+        ? { ...p, problems: p.problems.filter(prob => prob.id !== problemId) }
+        : p
+    ));
+  };
+
+  const isProblemInPlaylist = (playlistId: string, problemId: number) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    return playlist?.problems.some(prob => prob.id === problemId) || false;
+  };
+
+  const filteredProblems = problems.filter(problem =>
+    problem.title.toLowerCase().includes(problemSearchQuery.toLowerCase())
+  );
+
+  const selectedPlaylist = playlists.find(p => p.id === selectedPlaylistId);
 
   const getDifficultyClass = (difficulty: string) => {
     switch (difficulty) {
@@ -404,6 +447,19 @@ export default function Profile() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPlaylistId(playlist.id);
+                                setIsAddProblemsOpen(true);
+                              }}
+                            >
+                              <Plus className="w-3 h-3" />
+                              Add
+                            </Button>
+                            <Button
                               variant="ghost"
                               size="icon"
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -461,6 +517,99 @@ export default function Profile() {
                 </div>
               )}
             </div>
+
+            {/* Add Problems Dialog */}
+            <Dialog open={isAddProblemsOpen} onOpenChange={(open) => {
+              setIsAddProblemsOpen(open);
+              if (!open) {
+                setProblemSearchQuery("");
+                setJustCreatedPlaylistId(null);
+              }
+            }}>
+              <DialogContent className="glass-card border-border max-w-lg max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle>Add Problems to {selectedPlaylist?.title}</DialogTitle>
+                  <DialogDescription>
+                    {justCreatedPlaylistId === selectedPlaylistId 
+                      ? "Your playlist was created! Now add some problems to it."
+                      : "Search and add problems to your playlist"
+                    }
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search problems..."
+                      value={problemSearchQuery}
+                      onChange={(e) => setProblemSearchQuery(e.target.value)}
+                      className="pl-10 bg-secondary/50 border-border"
+                    />
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto space-y-2">
+                    {filteredProblems.map((problem) => {
+                      const isAdded = selectedPlaylistId ? isProblemInPlaylist(selectedPlaylistId, problem.id) : false;
+                      return (
+                        <div
+                          key={problem.id}
+                          className={`p-3 rounded-lg border transition-colors ${
+                            isAdded 
+                              ? "border-primary/50 bg-primary/10" 
+                              : "border-border bg-secondary/30 hover:bg-secondary/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-muted-foreground w-6">{problem.id}.</span>
+                              <span className="text-sm font-medium">{problem.title}</span>
+                              <Badge className={`text-xs ${getDifficultyClass(problem.difficulty)}`}>
+                                {problem.difficulty}
+                              </Badge>
+                            </div>
+                            <Button
+                              variant={isAdded ? "ghost" : "outline"}
+                              size="sm"
+                              className={isAdded ? "text-primary" : ""}
+                              onClick={() => {
+                                if (selectedPlaylistId) {
+                                  if (isAdded) {
+                                    handleRemoveProblemFromPlaylist(selectedPlaylistId, problem.id);
+                                  } else {
+                                    handleAddProblemToPlaylist(selectedPlaylistId, {
+                                      id: problem.id,
+                                      title: problem.title,
+                                      difficulty: problem.difficulty,
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              {isAdded ? (
+                                <>
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Added
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-4 h-4 mr-1" />
+                                  Add
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <Button 
+                    onClick={() => setIsAddProblemsOpen(false)} 
+                    className="w-full"
+                  >
+                    Done
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

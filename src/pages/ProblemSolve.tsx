@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Navbar } from "@/components/layout/Navbar";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -98,7 +98,6 @@ Memory: 42.3 MB (beats 67.89%)`);
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      <Navbar isLoggedIn />
       
       {/* Problem Navigation */}
       <div className="h-12 border-b border-border bg-card/50 flex items-center px-4 gap-4">

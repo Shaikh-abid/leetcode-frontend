@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Code2, Menu, X, User, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Problems", path: "/problems" },
+  { name: "Roadmaps", path: "/roadmaps" },
   { name: "Explore", path: "/explore" },
   { name: "Contest", path: "/contest" },
 ];
@@ -16,12 +17,33 @@ interface NavbarProps {
 
 export function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  // Hide navbar on problem solve page
+  const isProblemSolvePage = location.pathname.match(/^\/problems\/[^/]+$/);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (isProblemSolvePage) {
+    return null;
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 py-4">
       <div className="container mx-auto px-4">
-        <div className="max-w-5xl mx-auto glass rounded-2xl border border-border/50 px-4">
+        <div className={`max-w-5xl mx-auto rounded-2xl border border-border/50 px-4 transition-all duration-300 ${
+          scrolled 
+            ? "bg-background/70 backdrop-blur-xl shadow-lg" 
+            : "glass"
+        }`}>
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
