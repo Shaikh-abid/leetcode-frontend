@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   User, 
   MapPin, 
@@ -8,12 +11,37 @@ import {
   Calendar, 
   Github, 
   Linkedin,
-  Trophy,
   Target,
   Flame,
-  Star,
-  Edit2
+  Edit2,
+  Plus,
+  ListMusic,
+  Trash2,
+  Heart,
+  X
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+interface PlaylistProblem {
+  id: number;
+  title: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+}
+
+interface Playlist {
+  id: string;
+  title: string;
+  description: string;
+  problems: PlaylistProblem[];
+  createdAt: string;
+}
 
 const userProfile = {
   name: "Alex Johnson",
@@ -41,17 +69,78 @@ const userProfile = {
     { date: "2 days ago", problems: ["Maximum Subarray"] },
   ],
   skills: ["Dynamic Programming", "Graph Algorithms", "Binary Search", "Two Pointers", "Sliding Window"],
-  badges: [
-    { name: "100 Days Streak", icon: Flame, color: "text-orange-500" },
-    { name: "Problem Solver", icon: Target, color: "text-primary" },
-    { name: "Contest Regular", icon: Trophy, color: "text-yellow-500" },
-  ],
 };
+
+const initialPlaylists: Playlist[] = [
+  {
+    id: "1",
+    title: "FAANG Interview Prep",
+    description: "Must-solve problems for top tech company interviews",
+    problems: [
+      { id: 1, title: "Two Sum", difficulty: "Easy" },
+      { id: 2, title: "LRU Cache", difficulty: "Medium" },
+      { id: 3, title: "Merge K Sorted Lists", difficulty: "Hard" },
+    ],
+    createdAt: "2024-01-15",
+  },
+  {
+    id: "2",
+    title: "Dynamic Programming",
+    description: "Essential DP patterns and problems",
+    problems: [
+      { id: 4, title: "Climbing Stairs", difficulty: "Easy" },
+      { id: 5, title: "Coin Change", difficulty: "Medium" },
+    ],
+    createdAt: "2024-01-10",
+  },
+];
 
 export default function Profile() {
   const { stats } = userProfile;
-  const totalProblems = 2500; // Total available problems
+  const totalProblems = 2500;
   const progressPercentage = (stats.totalSolved / totalProblems) * 100;
+
+  const [playlists, setPlaylists] = useState<Playlist[]>(initialPlaylists);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newPlaylist, setNewPlaylist] = useState({ title: "", description: "" });
+  const [expandedPlaylist, setExpandedPlaylist] = useState<string | null>(null);
+
+  const handleCreatePlaylist = () => {
+    if (!newPlaylist.title.trim()) return;
+    
+    const playlist: Playlist = {
+      id: Date.now().toString(),
+      title: newPlaylist.title,
+      description: newPlaylist.description,
+      problems: [],
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+    
+    setPlaylists([playlist, ...playlists]);
+    setNewPlaylist({ title: "", description: "" });
+    setIsCreateOpen(false);
+  };
+
+  const handleDeletePlaylist = (id: string) => {
+    setPlaylists(playlists.filter(p => p.id !== id));
+  };
+
+  const handleRemoveProblem = (playlistId: string, problemId: number) => {
+    setPlaylists(playlists.map(p => 
+      p.id === playlistId 
+        ? { ...p, problems: p.problems.filter(prob => prob.id !== problemId) }
+        : p
+    ));
+  };
+
+  const getDifficultyClass = (difficulty: string) => {
+    switch (difficulty) {
+      case "Easy": return "bg-difficulty-easy/15 text-difficulty-easy";
+      case "Medium": return "bg-difficulty-medium/15 text-difficulty-medium";
+      case "Hard": return "bg-difficulty-hard/15 text-difficulty-hard";
+      default: return "";
+    }
+  };
 
   return (
     <Layout isLoggedIn>
@@ -62,7 +151,7 @@ export default function Profile() {
             {/* Profile Card */}
             <div className="glass-card p-6">
               <div className="flex justify-between items-start mb-4">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-3xl font-bold text-primary-foreground">
+                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-primary-foreground">
                   {userProfile.name.charAt(0)}
                 </div>
                 <Button variant="ghost" size="icon">
@@ -102,21 +191,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Badges */}
-            <div className="glass-card p-6">
-              <h3 className="font-semibold mb-4">Badges</h3>
-              <div className="grid grid-cols-3 gap-4">
-                {userProfile.badges.map((badge) => (
-                  <div key={badge.name} className="flex flex-col items-center text-center">
-                    <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-2">
-                      <badge.icon className={`w-6 h-6 ${badge.color}`} />
-                    </div>
-                    <span className="text-xs text-muted-foreground">{badge.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Skills */}
             <div className="glass-card p-6">
               <h3 className="font-semibold mb-4">Skills</h3>
@@ -147,7 +221,7 @@ export default function Profile() {
                 <div className="text-sm text-muted-foreground">Day Streak 🔥</div>
               </div>
               <div className="glass-card p-4 text-center">
-                <div className="text-3xl font-bold text-yellow-500">{stats.contestRating}</div>
+                <div className="text-3xl font-bold text-primary">{stats.contestRating}</div>
                 <div className="text-sm text-muted-foreground">Contest Rating</div>
               </div>
             </div>
@@ -249,25 +323,143 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Contest Performance */}
+            {/* My Playlists */}
             <div className="glass-card p-6">
-              <h3 className="font-semibold mb-4">Contest Performance</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-secondary/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
-                    <span className="font-medium">Contests Participated</span>
-                  </div>
-                  <div className="text-2xl font-bold">{stats.contestsParticipated}</div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <ListMusic className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">My Playlists</h3>
                 </div>
-                <div className="p-4 bg-secondary/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Best Ranking</span>
-                  </div>
-                  <div className="text-2xl font-bold">#342</div>
-                </div>
+                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Create Playlist
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="glass-card border-border">
+                    <DialogHeader>
+                      <DialogTitle>Create New Playlist</DialogTitle>
+                      <DialogDescription>
+                        Create a playlist to organize your favorite problems
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Title</label>
+                        <Input
+                          placeholder="e.g., Interview Prep"
+                          value={newPlaylist.title}
+                          onChange={(e) => setNewPlaylist({ ...newPlaylist, title: e.target.value })}
+                          className="bg-secondary/50 border-border"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Description</label>
+                        <Textarea
+                          placeholder="Describe your playlist..."
+                          value={newPlaylist.description}
+                          onChange={(e) => setNewPlaylist({ ...newPlaylist, description: e.target.value })}
+                          className="bg-secondary/50 border-border resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <Button onClick={handleCreatePlaylist} className="w-full">
+                        Create Playlist
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
+
+              {playlists.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <ListMusic className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No playlists yet. Create one to organize your favorite problems!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {playlists.map((playlist) => (
+                    <div 
+                      key={playlist.id} 
+                      className="border border-border rounded-lg overflow-hidden"
+                    >
+                      <div 
+                        className="p-4 bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors"
+                        onClick={() => setExpandedPlaylist(
+                          expandedPlaylist === playlist.id ? null : playlist.id
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                              <Heart className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{playlist.title}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {playlist.problems.length} problems • Created {playlist.createdAt}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePlaylist(playlist.id);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {playlist.description && (
+                          <p className="text-sm text-muted-foreground mt-2 ml-13">
+                            {playlist.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {expandedPlaylist === playlist.id && (
+                        <div className="border-t border-border">
+                          {playlist.problems.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground text-sm">
+                              No problems in this playlist yet. Add problems from the Problems page!
+                            </div>
+                          ) : (
+                            <div className="divide-y divide-border">
+                              {playlist.problems.map((problem) => (
+                                <div 
+                                  key={problem.id}
+                                  className="p-3 flex items-center justify-between hover:bg-secondary/20"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-sm font-medium">{problem.title}</span>
+                                    <Badge className={`text-xs ${getDifficultyClass(problem.difficulty)}`}>
+                                      {problem.difficulty}
+                                    </Badge>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    onClick={() => handleRemoveProblem(playlist.id, problem.id)}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
