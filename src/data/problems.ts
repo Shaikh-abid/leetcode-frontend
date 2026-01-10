@@ -19,6 +19,11 @@ export interface Problem {
     python: string;
     cpp: string;
   };
+  driverCode: {
+    javascript: string;
+    python: string;
+    cpp: string;
+  };
 }
 
 export const problems: Problem[] = [
@@ -71,6 +76,26 @@ public:
     }
 };`,
     },
+    driverCode: {
+      javascript: `/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number[]}
+ */
+var twoSum = function(nums, target) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // Your code here
+    }
+};`,
+    },
   },
   {
     id: 2,
@@ -97,6 +122,48 @@ public:
       "It is guaranteed that the list represents a number that does not have leading zeros.",
     ],
     starterCode: {
+      javascript: `/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} l1
+ * @param {ListNode} l2
+ * @return {ListNode}
+ */
+var addTwoNumbers = function(l1, l2) {
+    // Your code here
+};`,
+      python: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        # Your code here
+        pass`,
+      cpp: `/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        // Your code here
+    }
+};`,
+    },
+    driverCode: {
       javascript: `/**
  * Definition for singly-linked list.
  * function ListNode(val, next) {
@@ -187,6 +254,25 @@ public:
     }
 };`,
     },
+    driverCode: {
+      javascript: `/**
+ * @param {string} s
+ * @return {number}
+ */
+var lengthOfLongestSubstring = function(s) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        // Your code here
+    }
+};`,
+    },
   },
   {
     id: 4,
@@ -205,7 +291,8 @@ public:
       {
         input: "nums1 = [1,2], nums2 = [3,4]",
         output: "2.50000",
-        explanation: "merged array = [1,2,3,4] and median is (2 + 3) / 2 = 2.5.",
+        explanation:
+          "merged array = [1,2,3,4] and median is (2 + 3) / 2 = 2.5.",
       },
     ],
     constraints: [
@@ -217,6 +304,26 @@ public:
       "-10^6 <= nums1[i], nums2[i] <= 10^6",
     ],
     starterCode: {
+      javascript: `/**
+ * @param {number[]} nums1
+ * @param {number[]} nums2
+ * @return {number}
+ */
+var findMedianSortedArrays = function(nums1, nums2) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+        // Your code here
+    }
+};`,
+    },
+    driverCode: {
       javascript: `/**
  * @param {number[]} nums1
  * @param {number[]} nums2
@@ -264,6 +371,25 @@ public:
       "s consists of parentheses only '()[]{}'.",
     ],
     starterCode: {
+      javascript: `/**
+ * @param {string} s
+ * @return {boolean}
+ */
+var isValid = function(s) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def isValid(self, s: str) -> bool:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    bool isValid(string s) {
+        // Your code here
+    }
+};`,
+    },
+    driverCode: {
       javascript: `/**
  * @param {string} s
  * @return {boolean}
@@ -352,6 +478,48 @@ public:
     }
 };`,
     },
+    driverCode: {
+      javascript: `/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} list1
+ * @param {ListNode} list2
+ * @return {ListNode}
+ */
+var mergeTwoLists = function(list1, list2) {
+    // Your code here
+};`,
+      python: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        # Your code here
+        pass`,
+      cpp: `/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        // Your code here
+    }
+};`,
+    },
   },
   {
     id: 7,
@@ -378,11 +546,27 @@ public:
         explanation: "The subarray [5,4,-1,7,8] has the largest sum 23.",
       },
     ],
-    constraints: [
-      "1 <= nums.length <= 10^5",
-      "-10^4 <= nums[i] <= 10^4",
-    ],
+    constraints: ["1 <= nums.length <= 10^5", "-10^4 <= nums[i] <= 10^4"],
     starterCode: {
+      javascript: `/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxSubArray = function(nums) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        // Your code here
+    }
+};`,
+    },
+    driverCode: {
       javascript: `/**
  * @param {number[]} nums
  * @return {number}
@@ -414,7 +598,8 @@ public:
       {
         input: "height = [0,1,0,2,1,0,1,3,2,1,2,1]",
         output: "6",
-        explanation: "The elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water are being trapped.",
+        explanation:
+          "The elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water are being trapped.",
       },
       {
         input: "height = [4,2,0,3,2,5]",
@@ -427,6 +612,25 @@ public:
       "0 <= height[i] <= 10^5",
     ],
     starterCode: {
+      javascript: `/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var trap = function(height) {
+    // Your code here
+};`,
+      python: `class Solution:
+    def trap(self, height: List[int]) -> int:
+        # Your code here
+        pass`,
+      cpp: `class Solution {
+public:
+    int trap(vector<int>& height) {
+        // Your code here
+    }
+};`,
+    },
+    driverCode: {
       javascript: `/**
  * @param {number[]} height
  * @return {number}

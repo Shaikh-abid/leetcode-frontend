@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Editor from '@monaco-editor/react';
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +15,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  X, 
-  Code2, 
-  FileText, 
-  TestTube2, 
-  Settings, 
+import {
+  Plus,
+  X,
+  Code2,
+  FileText,
+  TestTube2,
+  Settings,
   Lightbulb,
   Save,
   Eye
@@ -95,11 +96,23 @@ export default function CreateProblem() {
     javascript: "function solution(input) {\n  // Your code here\n  \n}",
     python: "def solution(input):\n    # Your code here\n    pass",
     cpp: "class Solution {\npublic:\n    void solution() {\n        // Your code here\n    }\n};",
+    java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
   });
-  const [solution, setSolution] = useState("");
+  const [solution, setSolution] = useState({
+    javascript: "function solution(input) {\n  // Your code here\n  \n}",
+    python: "def solution(input):\n    # Your code here\n    pass",
+    cpp: "class Solution {\npublic:\n    void solution() {\n        // Your code here\n    }\n};",
+    java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
+  });
   const [solutionExplanation, setSolutionExplanation] = useState("");
   const [timeComplexity, setTimeComplexity] = useState("");
   const [spaceComplexity, setSpaceComplexity] = useState("");
+  const [driverCode, setDriverCode] = useState({
+    javascript: "const result = solution(...inputs);\nconsole.log(JSON.stringify(result));",
+    python: "import json\nprint(json.dumps(solution(*inputs)))",
+    cpp: "// Driver code handled in backend usually for C++",
+    java: "// Driver code handled in backend",
+  });
 
   const addTag = (tag: string) => {
     if (!selectedTags.includes(tag)) {
@@ -162,6 +175,58 @@ export default function CreateProblem() {
       return;
     }
 
+    const problemData = {
+      title,
+      difficulty,
+      description,
+      tags: selectedTags,
+      companies: selectedCompanies,
+      testCases,
+      hints,
+      starterCode,
+      solution,
+      timeComplexity,
+      spaceComplexity,
+      solutionExplanation,
+      constraints,
+      driverCode,
+    };
+
+
+    setTitle("");
+    setDifficulty("");
+    setDescription("");
+    setSelectedTags([]);
+    setSelectedCompanies([]);
+    setTestCases([
+      { id: "1", input: "", expectedOutput: "", explanation: "" },
+    ]);
+    setHints([]);
+    setStarterCode({
+      javascript: "function solution(input) {\n  // Your code here\n  \n}",
+      python: "def solution(input):\n    # Your code here\n    pass",
+      cpp: "class Solution {\npublic:\n    void solution() {\n        // Your code here\n    }\n};",
+      java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
+    });
+    setSolution({
+      javascript: "function solution(input) {\n  // Your code here\n  \n}",
+      python: "def solution(input):\n    # Your code here\n    pass",
+      cpp: "class Solution {\npublic:\n    void solution() {\n        // Your code here\n    }\n};",
+      java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
+    });
+    setSolutionExplanation("");
+    setTimeComplexity("");
+    setSpaceComplexity("");
+    setConstraints("");
+    setDriverCode({
+      javascript: "function solution(input) {\n  // Your code here\n  \n}",
+      python: "def solution(input):\n    # Your code here\n    pass",
+      cpp: "class Solution {\npublic:\n    void solution() {\n        // Your code here\n    }\n};",
+      java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
+    });
+
+    console.log(problemData);
+
     // Here you would submit to backend
     toast({
       title: "Problem Created!",
@@ -201,6 +266,10 @@ export default function CreateProblem() {
               <Settings className="w-4 h-4" />
               Settings
             </TabsTrigger>
+            <TabsTrigger value="driver" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <Settings className="w-4 h-4" /> {/* Or import { Terminal } from lucide-react */}
+            Driver Code
+          </TabsTrigger>
           </TabsList>
 
           {/* Details Tab */}
@@ -421,36 +490,91 @@ export default function CreateProblem() {
                     <TabsTrigger value="javascript">JavaScript</TabsTrigger>
                     <TabsTrigger value="python">Python</TabsTrigger>
                     <TabsTrigger value="cpp">C++</TabsTrigger>
+                    <TabsTrigger value="java">Java</TabsTrigger>
                   </TabsList>
                   <TabsContent value="javascript">
-                    <Textarea
-                      rows={12}
-                      value={starterCode.javascript}
-                      onChange={(e) =>
-                        setStarterCode({ ...starterCode, javascript: e.target.value })
-                      }
-                      className="font-mono text-sm bg-background"
-                    />
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="javascript"
+                        value={starterCode.javascript}
+                        onChange={(value) =>
+                          setStarterCode({ ...starterCode, javascript: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 2,
+                        }}
+                      />
+                    </div>
                   </TabsContent>
                   <TabsContent value="python">
-                    <Textarea
-                      rows={12}
-                      value={starterCode.python}
-                      onChange={(e) =>
-                        setStarterCode({ ...starterCode, python: e.target.value })
-                      }
-                      className="font-mono text-sm bg-background"
-                    />
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="python"
+                        value={starterCode.python}
+                        onChange={(value) =>
+                          setStarterCode({ ...starterCode, python: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
                   </TabsContent>
                   <TabsContent value="cpp">
-                    <Textarea
-                      rows={12}
-                      value={starterCode.cpp}
-                      onChange={(e) =>
-                        setStarterCode({ ...starterCode, cpp: e.target.value })
-                      }
-                      className="font-mono text-sm bg-background"
-                    />
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="cpp"
+                        value={starterCode.cpp}
+                        onChange={(value) =>
+                          setStarterCode({ ...starterCode, cpp: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 16,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="java">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="java"
+                        value={starterCode.java}
+                        onChange={(value) =>
+                          setStarterCode({ ...starterCode, java: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 16,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
@@ -465,16 +589,98 @@ export default function CreateProblem() {
                 <CardDescription>Provide the optimal solution and walkthrough</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Solution Code</Label>
-                  <Textarea
-                    rows={12}
-                    placeholder="function solution(nums, target) {&#10;  const map = new Map();&#10;  for (let i = 0; i < nums.length; i++) {&#10;    const complement = target - nums[i];&#10;    if (map.has(complement)) {&#10;      return [map.get(complement), i];&#10;    }&#10;    map.set(nums[i], i);&#10;  }&#10;}"
-                    value={solution}
-                    onChange={(e) => setSolution(e.target.value)}
-                    className="font-mono text-sm bg-background"
-                  />
-                </div>
+                <Tabs defaultValue="javascript" className="space-y-4">
+                  <TabsList className="bg-background">
+                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                    <TabsTrigger value="python">Python</TabsTrigger>
+                    <TabsTrigger value="cpp">C++</TabsTrigger>
+                    <TabsTrigger value="java">Java</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="javascript">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="javascript"
+                        value={solution.javascript}
+                        onChange={(value) =>
+                          setSolution({ ...solution, javascript: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 2,
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="python">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="python"
+                        value={solution.python}
+                        onChange={(value) =>
+                          setSolution({ ...solution, python: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="cpp">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="cpp"
+                        value={solution.cpp}
+                        onChange={(value) =>
+                          setSolution({ ...solution, cpp: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 16,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="java">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="java"
+                        value={solution.java}
+                        onChange={(value) =>
+                          setSolution({ ...solution, java: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 16,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 4,
+                        }}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
                 <div className="space-y-2">
                   <Label>Explanation</Label>
@@ -549,6 +755,86 @@ export default function CreateProblem() {
                     </div>
                   ))
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Driver Code Tab */}
+          <TabsContent value="driver" className="space-y-6">
+            <Card className="glass-card border-border">
+              <CardHeader>
+                <CardTitle>Hidden Driver Code</CardTitle>
+                <CardDescription>
+                  This code is hidden from the user. It calls their function and prints the result.
+                  <br />
+                  <span className="text-xs text-muted-foreground">Variables available: <code>inputs</code> (array of arguments)</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="javascript" className="space-y-4">
+                  <TabsList className="bg-background">
+                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                    <TabsTrigger value="python">Python</TabsTrigger>
+                    <TabsTrigger value="cpp">C++</TabsTrigger>
+                    <TabsTrigger value="java">Java</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="javascript">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="javascript"
+                        value={driverCode.javascript}
+                        onChange={(value) =>
+                          setDriverCode({ ...driverCode, javascript: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{ minimap: { enabled: false }, fontSize: 14 }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="python">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="python"
+                        value={driverCode.python}
+                        onChange={(value) =>
+                          setDriverCode({ ...driverCode, python: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{ minimap: { enabled: false }, fontSize: 14 }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="cpp">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="cpp"
+                        value={driverCode.cpp}
+                        onChange={(value) =>
+                          setDriverCode({ ...driverCode, cpp: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{ minimap: { enabled: false }, fontSize: 14 }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="java">
+                    <div className="border border-border rounded-md overflow-hidden">
+                      <Editor
+                        height="300px"
+                        defaultLanguage="java"
+                        value={driverCode.java}
+                        onChange={(value) =>
+                          setDriverCode({ ...driverCode, java: value || '' })
+                        }
+                        theme="vs-dark"
+                        options={{ minimap: { enabled: false }, fontSize: 14 }}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </TabsContent>

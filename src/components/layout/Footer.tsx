@@ -89,7 +89,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 CodeForge. All rights reserved.
+            © 2024 LeetCode. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Made with ❤️ for developers worldwide

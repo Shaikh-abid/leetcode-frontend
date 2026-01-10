@@ -2,23 +2,24 @@ import { Link, useLocation } from "react-router-dom";
 import { Code2, Menu, X, User, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext"
 
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Problems", path: "/problems" },
   { name: "Roadmaps", path: "/roadmaps" },
-  { name: "Explore", path: "/explore" },
-  { name: "Contest", path: "/contest" },
+  // { name: "Explore", path: "/explore" },
+  // { name: "Contest", path: "/contest" },
 ];
 
-interface NavbarProps {
-  isLoggedIn?: boolean;
-}
 
-export function Navbar({ isLoggedIn = false }: NavbarProps) {
+
+export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
+
 
   // Hide navbar on problem solve page
   const isProblemSolvePage = location.pathname.match(/^\/problems\/[^/]+$/);
@@ -37,13 +38,12 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 py-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 py-4  backdrop-blur-xl">
       <div className="container mx-auto px-4">
-        <div className={`max-w-5xl mx-auto rounded-2xl border border-border/50 px-4 transition-all duration-300 ${
-          scrolled 
-            ? "bg-background/70 backdrop-blur-xl shadow-lg" 
-            : "glass"
-        }`}>
+        <div className={`max-w-5xl mx-auto rounded-2xl border border-border/50 px-4 transition-all duration-300 ${scrolled
+          ? "bg-background/70 backdrop-blur-xl shadow-lg"
+          : "glass"
+          }`}>
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
@@ -61,11 +61,10 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    location.pathname === link.path
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.path
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -74,13 +73,20 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
 
             {/* Auth Buttons & Create Problem */}
             <div className="hidden md:flex items-center gap-2">
-              <Link to="/create-problem">
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Plus className="w-4 h-4" />
-                  Create
-                </Button>
-              </Link>
-              {isLoggedIn ? (
+              {
+                isAuthenticated ? (
+                  <Link to="/create-problem">
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <Plus className="w-4 h-4" />
+                      Create Problem
+                    </Button>
+                  </Link>
+                ) : (
+                  <></>
+                )
+              }
+
+              {isAuthenticated ? (
                 <>
                   <Link to="/profile">
                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -127,11 +133,10 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
                     key={link.path}
                     to={link.path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      location.pathname === link.path
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    }`}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.path
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      }`}
                   >
                     {link.name}
                   </Link>

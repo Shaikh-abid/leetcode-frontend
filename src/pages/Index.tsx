@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { 
-  Code2, 
-  Trophy, 
-  Users, 
-  Zap, 
-  Target, 
-  BookOpen, 
+import {
+  Code2,
+  Trophy,
+  Users,
+  Zap,
+  Target,
+  BookOpen,
   ArrowRight,
-  CheckCircle2 
+  CheckCircle2
 } from "lucide-react";
 
 const stats = [
@@ -56,28 +56,26 @@ export default function Index() {
       <section className="relative overflow-hidden min-h-[90vh] flex items-center">
         {/* Dot Pattern Background */}
         <div className="absolute inset-0 dot-pattern opacity-40" />
-        
+
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-[80px]" />
-        
+
         <div className="container mx-auto px-4 py-24 relative">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 animate-fade-in border border-primary/20">
               <Zap className="w-4 h-4" />
               <span>The #1 Platform for Coding Interview Prep</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in leading-tight">
               Master Your{" "}
               <span className="gradient-text">Coding Skills</span>
             </h1>
-            
+
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in">
               Practice coding problems, prepare for technical interviews, and land your dream job at top tech companies.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
               <Link to="/signup">
                 <Button variant="hero" size="xl">
@@ -122,7 +120,7 @@ export default function Index() {
               Our platform provides all the tools and resources you need to ace your next coding interview.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
               <div
@@ -159,7 +157,7 @@ export default function Index() {
               </Button>
             </Link>
           </div>
-          
+
           <div className="grid gap-4">
             {topProblems.map((problem, index) => (
               <Link
@@ -177,13 +175,12 @@ export default function Index() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      problem.difficulty === "Easy"
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${problem.difficulty === "Easy"
                         ? "bg-difficulty-easy"
                         : problem.difficulty === "Medium"
-                        ? "bg-difficulty-medium"
-                        : "bg-difficulty-hard"
-                    }`}
+                          ? "bg-difficulty-medium"
+                          : "bg-difficulty-hard"
+                      }`}
                   >
                     {problem.difficulty}
                   </span>
@@ -209,7 +206,7 @@ export default function Index() {
                 Ready to Level Up Your Skills?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Join millions of developers who are preparing for their dream jobs with CodeForge.
+                Join millions of developers who are preparing for their dream jobs with LeetCode.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
