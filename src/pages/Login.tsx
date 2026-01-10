@@ -6,17 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Code2, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const { login, googleLogin, error, loading } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		// Handle login logic
 		try {
-			await login({ email, password });
+			const data = await login({ email, password });
 			// Redirect happens inside context
 		} catch (err) {
 			// Error is also handled in context, but you can show toast here
@@ -73,7 +75,6 @@ export default function Login() {
 
 						{/* Divider */}
 						<div className="relative my-6">
-							{error && <p className="text-red-500">{error}</p>	}
 							<div className="absolute inset-0 flex items-center">
 								<div className="w-full border-t border-border" />
 							</div>
@@ -100,21 +101,19 @@ export default function Login() {
 							<div className="space-y-2">
 								<div className="flex justify-between items-center">
 									<Label htmlFor="password">Password</Label>
-									<Link
-										to="/forgot-password"
-										className="text-sm text-primary hover:underline"
-									>
-										Forgot password?
-									</Link>
 								</div>
-								<Input
-									id="password"
-									type="password"
-									placeholder="••••••••"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-								/>
+								<div className="flex items-center gap-2 relative">
+									<Input
+										id="password"
+										type={showPassword ? "text" : "password"}
+										placeholder="••••••••"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										required
+									/>
+
+									<span className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-muted-foreground"> {showPassword ? <EyeOff onClick={() => setShowPassword(false)} /> : <Eye onClick={() => setShowPassword(true)} />}</span>
+								</div>
 							</div>
 							<Button type="submit" variant="hero" className="w-full">
 								<Mail className="w-4 h-4 mr-2" />
@@ -123,6 +122,7 @@ export default function Login() {
 								}
 							</Button>
 						</form>
+						{error && <p className="text-red-500 my-4">{"*" + error}</p>}
 					</div>
 
 					{/* Sign Up Link */}` `

@@ -13,6 +13,7 @@ import Roadmaps from "./pages/Roadmaps";
 import NotFound from "./pages/NotFound";
 import { AuthContextProvider } from "./context/AuthContext";
 import AuthSuccess from "./pages/AuthSuccess";
+import ProblemContextProvider  from "./context/ProblemContext";
 
 const App = () => (
 
@@ -21,18 +22,20 @@ const App = () => (
     <Sonner />
     <BrowserRouter>
       <AuthContextProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/problems" element={<Problems />} />
-          <Route path="/problems/:slug" element={<ProblemSolve />} />
-          <Route path="/create-problem" element={<CreateProblem />} />
-          <Route path="/roadmaps" element={<Roadmaps />} />
-          <Route path="/auth-success" element={<AuthSuccess />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <ProblemContextProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/problems" element={<Problems />} />
+            <Route path="/problems/:slug" element={<ProblemSolve />} />
+            <Route path="/create-problem" element={<CreateProblem />} />
+            <Route path="/roadmaps" element={<Roadmaps />} />
+            <Route path="/auth-success" element={<AuthSuccess />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ProblemContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
   </TooltipProvider>

@@ -11,15 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  CheckCircle2, 
+import {
+  Search,
+  Filter,
+  CheckCircle2,
   Circle,
   ChevronLeft,
   ChevronRight,
   X
 } from "lucide-react";
+import { useProblem } from "../context/ProblemContext";
 import { problems, allTags, type Difficulty } from "@/data/problems";
 
 const ITEMS_PER_PAGE = 10;
@@ -32,6 +33,8 @@ export default function Problems() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
 
+  const { fetchAllProblems } = useProblem();
+
   // Mock solved problems (in real app, this would come from user data)
   const solvedProblems = new Set([1, 5]);
 
@@ -40,19 +43,19 @@ export default function Problems() {
       const matchesSearch = problem.title
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-      
+
       const matchesDifficulty =
         difficultyFilter === "all" || problem.difficulty === difficultyFilter;
-      
+
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "solved" && solvedProblems.has(problem.id)) ||
         (statusFilter === "unsolved" && !solvedProblems.has(problem.id));
-      
+
       const matchesTags =
         selectedTags.length === 0 ||
         selectedTags.some((tag) => problem.tags.includes(tag));
-      
+
       return matchesSearch && matchesDifficulty && matchesStatus && matchesTags;
     });
   }, [searchQuery, difficultyFilter, statusFilter, selectedTags]);
@@ -156,7 +159,7 @@ export default function Problems() {
                 <Filter className="w-4 h-4 mr-2" />
                 Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
               </Button>
-              
+
               {showTagsDropdown && (
                 <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 z-50 max-h-64 overflow-y-auto">
                   <div className="flex flex-wrap gap-2">
@@ -246,13 +249,12 @@ export default function Problems() {
                 </div>
                 <div className="col-span-2 lg:col-span-2">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      problem.difficulty === "Easy"
-                        ? "bg-difficulty-easy"
-                        : problem.difficulty === "Medium"
+                    className={`px-2 py-1 rounded text-xs font-medium ${problem.difficulty === "Easy"
+                      ? "bg-difficulty-easy"
+                      : problem.difficulty === "Medium"
                         ? "bg-difficulty-medium"
                         : "bg-difficulty-hard"
-                    }`}
+                      }`}
                   >
                     {problem.difficulty}
                   </span>

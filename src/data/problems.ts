@@ -18,11 +18,13 @@ export interface Problem {
     javascript: string;
     python: string;
     cpp: string;
+    java: string;
   };
   driverCode: {
     javascript: string;
     python: string;
     cpp: string;
+    java: string;
   };
 }
 
@@ -75,6 +77,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -95,6 +102,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -162,6 +174,21 @@ public:
         // Your code here
     }
 };`,
+      java: `/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -204,6 +231,21 @@ public:
         // Your code here
     }
 };`,
+      java: `/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -253,6 +295,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -272,6 +319,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -322,6 +374,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -342,6 +399,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -388,6 +450,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public boolean isValid(String s) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -407,6 +474,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public boolean isValid(String s) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -477,6 +549,21 @@ public:
         // Your code here
     }
 };`,
+      java: `/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -519,6 +606,21 @@ public:
         // Your code here
     }
 };`,
+      java: `/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -565,6 +667,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int maxSubArray(int[] nums) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -584,6 +691,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int maxSubArray(int[] nums) {
+        // Your code here
+    }
+}`,
     },
   },
   {
@@ -629,6 +741,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int trap(int[] height) {
+        // Your code here
+    }
+}`,
     },
     driverCode: {
       javascript: `/**
@@ -648,6 +765,11 @@ public:
         // Your code here
     }
 };`,
+      java: `class Solution {
+    public int trap(int[] height) {
+        // Your code here
+    }
+}`,
     },
   },
 ];

@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom"
 import AuthService from '../services/AuthService';
+import { toast } from 'sonner';
 
 const AuthContext = createContext();
 
@@ -40,9 +41,11 @@ export const AuthContextProvider = ({ children }) => {
             // localStorage.setItem("token", data.accessToken); 
 
             navigate("/problems"); // Redirect to problems page
+            toast.success("Login successful");
             return data;
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
+            toast.error(err.response?.data?.message || "Login failed");
             throw err;
         } finally {
             setLoading(false);
@@ -56,10 +59,12 @@ export const AuthContextProvider = ({ children }) => {
         try {
             const data = await AuthService.RegisterService(formData);
             // Usually, after register, we redirect to login or auto-login
-            navigate("/auth/login");
+            navigate("/login");
+            toast.success("Registration successful");
             return data;
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");
+            toast.error(err.response?.data?.message || "Registration failed");
             throw err;
         } finally {
             setLoading(false);

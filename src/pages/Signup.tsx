@@ -6,17 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Code2, Github, Mail } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Signup() {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [agreeTerms, setAgreeTerms] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const { register, googleLogin, error, loading } = useAuth();
+
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		// Handle signup logic
-		console.log("Signup:", { name, email, password, agreeTerms });
+		try {
+			const data = await register({ username: name, email, password });
+			// Redirect happens inside context
+		} catch (err) {
+			// Error is also handled in context, but you can show toast here
+			console.error(err);
+		}
 	};
 
 	return (
@@ -43,8 +54,8 @@ export default function Signup() {
 					<div className="glass-card p-8">
 						{/* Social Signup */}
 						<div className="space-y-3 mb-6">
-							
-							<Button variant="outline" className="w-full" type="button">
+
+							<Button variant="outline" className="w-full" type="button" onClick={googleLogin}>
 								<svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
 									<path
 										fill="currentColor"
@@ -105,14 +116,19 @@ export default function Signup() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="password">Password</Label>
-								<Input
-									id="password"
-									type="password"
-									placeholder="Create a strong password"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-								/>
+								<div className="flex items-center gap-2 relative">
+									<Input
+										id="password"
+										type={showPassword ? "text" : "password"}
+										placeholder="Create a strong password"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										required
+									/>
+									<span onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-muted-foreground">
+										{showPassword ? <EyeOff /> : <Eye />}
+									</span>
+								</div>
 								<p className="text-xs text-muted-foreground">
 									Must be at least 8 characters with one uppercase and one number
 								</p>
@@ -139,6 +155,8 @@ export default function Signup() {
 								Create Account
 							</Button>
 						</form>
+
+						{error && <p className="text-red-500 mt-2">{error}</p>}
 					</div>
 
 					{/* Sign In Link */}

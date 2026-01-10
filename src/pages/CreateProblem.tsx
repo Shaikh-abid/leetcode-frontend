@@ -27,6 +27,7 @@ import {
   Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProblem } from "../context/ProblemContext";
 
 const categories = [
   "Array",
@@ -114,6 +115,8 @@ export default function CreateProblem() {
     java: "// Driver code handled in backend",
   });
 
+  const { addProblem } = useProblem();
+
   const addTag = (tag: string) => {
     if (!selectedTags.includes(tag)) {
       setSelectedTags([...selectedTags, tag]);
@@ -165,15 +168,22 @@ export default function CreateProblem() {
     setHints(hints.map((h) => (h.id === id ? { ...h, text } : h)));
   };
 
-  const handleSubmit = () => {
-    if (!title || !difficulty || !description) {
+  const handleSubmit = async () => {
+    if (!title || !difficulty || !description || !selectedTags.length || !selectedCompanies.length || !testCases.length || !hints.length || !starterCode || !solution || !timeComplexity || !spaceComplexity || !solutionExplanation || !constraints || !driverCode) {
       toast({
         title: "Missing Required Fields",
-        description: "Please fill in the title, difficulty, and description.",
+        description: "Please fill in all the required fields.",
         variant: "destructive",
       });
       return;
     }
+
+    // 1. Clean the data (extract text from hint objects if they are objects)
+    // Your state might be [{id: 1, text: "hint"}], but backend expects ["hint"]
+    const cleanedHints = hints.map(h => h.text).filter(t => t.trim() !== "");
+
+    // Clean test cases (remove IDs if backend doesn't need them, or keep them)
+    const cleanedTestCases = testCases.map(({ id, ...rest }) => rest);
 
     const problemData = {
       title,
@@ -181,18 +191,30 @@ export default function CreateProblem() {
       description,
       tags: selectedTags,
       companies: selectedCompanies,
-      testCases,
-      hints,
+      testCases: cleanedTestCases,
+      hints: cleanedHints,
       starterCode,
-      solution,
-      timeComplexity,
-      spaceComplexity,
-      solutionExplanation,
+      driverCode, // Don't forget this!
+      solution: {
+        ...solution, // code object
+        explanation: solutionExplanation,
+        timeComplexity,
+        spaceComplexity
+      },
       constraints,
-      driverCode,
     };
 
+    try {
+      await addProblem(problemData); // Uses the context function
+      toast({
+        title: "Problem Created!",
+        description: "Your problem has been successfully created and is pending review.",
+      });
+    } catch (err) {
+      toast({ title: "Error In Creating Problem", variant: "destructive" });
+    }
 
+    // Here you would empty the all fields
     setTitle("");
     setDifficulty("");
     setDescription("");
@@ -225,13 +247,8 @@ export default function CreateProblem() {
       java: "public class Solution {\n    public void solution() {\n        // Your code here\n    }\n}",
     });
 
-    console.log(problemData);
+    // console.log(problemData);
 
-    // Here you would submit to backend
-    toast({
-      title: "Problem Created!",
-      description: "Your problem has been successfully created and is pending review.",
-    });
   };
 
   return (
@@ -267,9 +284,9 @@ export default function CreateProblem() {
               Settings
             </TabsTrigger>
             <TabsTrigger value="driver" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Settings className="w-4 h-4" /> {/* Or import { Terminal } from lucide-react */}
-            Driver Code
-          </TabsTrigger>
+              <Settings className="w-4 h-4" /> {/* Or import { Terminal } from lucide-react */}
+              Driver Code
+            </TabsTrigger>
           </TabsList>
 
           {/* Details Tab */}

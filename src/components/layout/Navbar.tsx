@@ -3,6 +3,7 @@ import { Code2, Menu, X, User, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext"
+import { toast } from "sonner";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -36,6 +37,12 @@ export function Navbar() {
   if (isProblemSolvePage) {
     return null;
   }
+
+  const handleLogout = () => {
+    logout();
+    toast("Logout successfully");
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 py-4  backdrop-blur-xl">
@@ -75,7 +82,7 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-2">
               {
                 isAuthenticated ? (
-                  <Link to="/create-problem">
+                  user.isAdmin && <Link to="/create-problem">
                     <Button variant="outline" size="sm" className="gap-1.5">
                       <Plus className="w-4 h-4" />
                       Create Problem
@@ -93,7 +100,7 @@ export function Navbar() {
                       <User className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button onClick={handleLogout} variant="ghost" size="icon" className="h-8 w-8">
                     <LogOut className="w-4 h-4" />
                   </Button>
                 </>
