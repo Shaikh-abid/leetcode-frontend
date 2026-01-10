@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Problems from "./pages/Problems";
 import ProblemSolve from "./pages/ProblemSolve";
 import CreateProblem from "./pages/CreateProblem";
+import Roadmaps from "./pages/Roadmaps";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -24,6 +25,7 @@ const App = () => (
         <Route path="/problems" element={<Problems />} />
         <Route path="/problems/:slug" element={<ProblemSolve />} />
         <Route path="/create-problem" element={<CreateProblem />} />
+        <Route path="/roadmaps" element={<Roadmaps />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
