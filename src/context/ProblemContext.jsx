@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import ProblemService from '../services/ProblemService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -13,35 +13,30 @@ const ProblemContextProvider = ({ children }) => {
     const navigate = useNavigate();
 
     // 1. Fetch All Problems (For the list page)
-    const fetchAllProblems = useCallback(async () => {
+    const fetchAllProblems = async () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await ProblemService.getProblems();
+            const data = await ProblemService.getProblem();
             setProblems(data);
 
             navigate('/problems');
-            toast.success("Problems fetched successfully");
         } catch (err) {
             setError(err.response?.data?.message || "Failed to fetch problems");
             toast.error("Failed to fetch problems");
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
 
     // 2. Fetch Single Problem (For the solve page)
-    const fetchProblem = useCallback(async (slug) => {
+    const fetchProblem = async (slug) => {
         setLoading(true);
         setError(null);
         try {
             const data = await ProblemService.getProblemBySlug(slug);
             setCurrentProblem(data);
-            return data;
-
-            navigate(`/problems`);
-            toast.success("Problem fetched successfully");
         } catch (err) {
             setError(err.response?.data?.message || "Failed to fetch problem");
             toast.error("Failed to fetch problem");
@@ -49,7 +44,7 @@ const ProblemContextProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
     // 3. Create Problem (For the create page)
     const addProblem = async (problemData) => {
@@ -59,14 +54,38 @@ const ProblemContextProvider = ({ children }) => {
             const data = await ProblemService.createProblem(problemData);
             // Optionally add to local state immediately so we don't need to refetch
             setProblems((prev) => [...prev, data.data]);
-            return data;
-
-            navigate(`/problems`);
-            toast.success("Problem created successfully");
         } catch (err) {
             setError(err.response?.data?.message || "Failed to create problem");
             toast.error("Failed to create problem");
             throw err; // Re-throw so the UI component can handle the specific error (e.g., toast)
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const runUserCode = async (language, code, slug) => {
+        setLoading(true); // Maybe use a separate 'executing' state so UI doesn't disappear
+        try {
+            const result = await ProblemService.submitSolution({ language, code, slug });
+            return result; // Returns { success: true, results: [...] }
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const finalSubmit = async (language, code, slug) => {
+        setLoading(true); // Maybe use a separate 'executing' state so UI doesn't disappear
+        try {
+            const result = await ProblemService.finalSubmitSolution({ language, code, slug });
+            return result; // Returns { success: true, results: [...] }
+        } catch (err) {
+            console.error(err);
+            throw err;
         } finally {
             setLoading(false);
         }
@@ -82,7 +101,9 @@ const ProblemContextProvider = ({ children }) => {
                 error,
                 fetchAllProblems,
                 fetchProblem,
-                addProblem
+                addProblem,
+                runUserCode,
+                finalSubmit
             }}>
             {children}
         </ProblemContext.Provider>

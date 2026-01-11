@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
@@ -18,12 +19,32 @@ import {
   Circle,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { useProblem } from "../context/ProblemContext";
-import { problems, allTags, type Difficulty } from "@/data/problems";
-
+import { Problem } from "../data/problems";
 const ITEMS_PER_PAGE = 10;
+
+
+// Helper to generate a "random" acceptance rate that stays consistent for the same problem ID
+// We use the ID string to create a seed so the number doesn't change on re-renders
+const getAcceptanceRate = (id: string, difficulty: string) => {
+  // Simple hash function from ID
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Base ranges based on difficulty
+  let min = 30, max = 60; // Default (Medium)
+  if (difficulty === "Easy") { min = 60; max = 95; }
+  if (difficulty === "Hard") { min = 10; max = 45; }
+
+  // Normalize hash to range
+  const random = Math.abs(hash % (max - min)) + min;
+  return random.toFixed(1);
+};
 
 export default function Problems() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,32 +54,53 @@ export default function Problems() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
 
-  const { fetchAllProblems } = useProblem();
+  // 1. Get Real Data from Context
+  const { problems, fetchAllProblems, loading } = useProblem();
 
-  // Mock solved problems (in real app, this would come from user data)
-  const solvedProblems = new Set([1, 5]);
+  useEffect(() => {
+    fetchAllProblems();
+  }, []);
+
+  // 2. Derive unique tags dynamically from the fetched problems
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    problems.forEach((p: Problem) => {
+      if (p.tags && Array.isArray(p.tags)) {
+        p.tags.forEach((t: string) => tags.add(t));
+      }
+    });
+    return Array.from(tags).sort();
+  }, [problems]);
+
+  // Mock solved problems (In real app, fetch from User Profile -> solvedProblems array)
+  // We use a Set of ID strings now
+  const solvedProblems = new Set<string>([]);
 
   const filteredProblems = useMemo(() => {
-    return problems.filter((problem) => {
+    if (!problems) return [];
+
+    return problems.filter((problem: Problem) => {
       const matchesSearch = problem.title
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
+      // Note: Backend stores difficulty as "Easy" (Capitalized), ensure match
       const matchesDifficulty =
-        difficultyFilter === "all" || problem.difficulty === difficultyFilter;
+        difficultyFilter === "all" ||
+        problem.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
 
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "solved" && solvedProblems.has(problem.id)) ||
-        (statusFilter === "unsolved" && !solvedProblems.has(problem.id));
+        (statusFilter === "solved" && solvedProblems.has(problem._id)) ||
+        (statusFilter === "unsolved" && !solvedProblems.has(problem._id));
 
       const matchesTags =
         selectedTags.length === 0 ||
-        selectedTags.some((tag) => problem.tags.includes(tag));
+        selectedTags.some((tag) => problem.tags?.includes(tag));
 
       return matchesSearch && matchesDifficulty && matchesStatus && matchesTags;
     });
-  }, [searchQuery, difficultyFilter, statusFilter, selectedTags]);
+  }, [searchQuery, difficultyFilter, statusFilter, selectedTags, problems]);
 
   const totalPages = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE);
   const paginatedProblems = filteredProblems.slice(
@@ -83,6 +125,16 @@ export default function Problems() {
 
   const hasActiveFilters =
     searchQuery || difficultyFilter !== "all" || statusFilter !== "all" || selectedTags.length > 0;
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex h-[80vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -125,9 +177,9 @@ export default function Problems() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Difficulties</SelectItem>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Hard">Hard</SelectItem>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
               </SelectContent>
             </Select>
 
@@ -161,7 +213,7 @@ export default function Problems() {
               </Button>
 
               {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 z-50 max-h-64 overflow-y-auto">
+                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 z-50 max-h-64 overflow-y-auto shadow-lg">
                   <div className="flex flex-wrap gap-2">
                     {allTags.map((tag) => (
                       <Badge
@@ -207,7 +259,7 @@ export default function Problems() {
         {/* Problems Table */}
         <div className="glass-card overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 p-4 border-b border-border text-sm font-medium text-muted-foreground">
+          <div className="grid grid-cols-12 gap-4 p-4 border-b border-border text-sm font-medium text-muted-foreground bg-muted/30">
             <div className="col-span-1">Status</div>
             <div className="col-span-5 lg:col-span-5">Title</div>
             <div className="col-span-3 lg:col-span-3 hidden sm:block">Tags</div>
@@ -217,53 +269,60 @@ export default function Problems() {
 
           {/* Table Body */}
           {paginatedProblems.length > 0 ? (
-            paginatedProblems.map((problem) => (
-              <Link
-                key={problem.id}
-                to={`/problems/${problem.slug}`}
-                className="grid grid-cols-12 gap-4 p-4 border-b border-border last:border-b-0 hover:bg-accent/50 transition-colors items-center"
-              >
-                <div className="col-span-1">
-                  {solvedProblems.has(problem.id) ? (
-                    <CheckCircle2 className="w-5 h-5 text-difficulty-easy" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="col-span-5 lg:col-span-5">
-                  <span className="font-medium hover:text-primary transition-colors">
-                    {problem.id}. {problem.title}
-                  </span>
-                </div>
-                <div className="col-span-3 lg:col-span-3 hidden sm:flex flex-wrap gap-1">
-                  {problem.tags.slice(0, 2).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {problem.tags.length > 2 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{problem.tags.length - 2}
-                    </Badge>
-                  )}
-                </div>
-                <div className="col-span-2 lg:col-span-2">
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${problem.difficulty === "Easy"
-                      ? "bg-difficulty-easy"
-                      : problem.difficulty === "Medium"
-                        ? "bg-difficulty-medium"
-                        : "bg-difficulty-hard"
-                      }`}
-                  >
-                    {problem.difficulty}
-                  </span>
-                </div>
-                <div className="col-span-1 text-right text-muted-foreground hidden md:block">
-                  {problem.acceptance}%
-                </div>
-              </Link>
-            ))
+            paginatedProblems.map((problem: Problem, index: number) => {
+              // Calculate dynamic acceptance
+              const acceptanceRate = getAcceptanceRate(problem._id, problem.difficulty);
+
+              return (
+                <Link
+                  key={problem._id}
+                  to={`/problems/${problem.slug}`}
+                  className="grid grid-cols-12 gap-4 p-4 border-b border-border last:border-b-0 hover:bg-accent/50 transition-colors items-center"
+                >
+                  <div className="col-span-1">
+                    {solvedProblems.has(problem._id) ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Circle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="col-span-5 lg:col-span-5">
+                    <span className="font-medium hover:text-primary transition-colors">
+                      {/* Display Index relative to whole list, or just use index+1 for current page */}
+                      {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}. {problem.title}
+                    </span>
+                  </div>
+                  <div className="col-span-3 lg:col-span-3 hidden sm:flex flex-wrap gap-1">
+                    {problem.tags?.slice(0, 2).map((tag: string) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {problem.tags?.length > 2 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{problem.tags.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="col-span-2 lg:col-span-2">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${problem.difficulty.toLowerCase() === "easy"
+                        ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                        : problem.difficulty.toLowerCase() === "medium"
+                          ? "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                          : "bg-red-500/10 text-red-500 border border-red-500/20"
+                        }`}
+                    >
+                      {problem.difficulty}
+                    </span>
+                  </div>
+                  {/* 3. Display the Calculated Acceptance */}
+                  <div className="col-span-1 text-right text-muted-foreground hidden md:block">
+                    {acceptanceRate}%
+                  </div>
+                </Link>
+              )
+            })
           ) : (
             <div className="p-12 text-center text-muted-foreground">
               <p>No problems found matching your criteria.</p>

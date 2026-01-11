@@ -25,9 +25,35 @@ const getProblemBySlug = async (slug) => {
     const response = await axiosInstance.get(
       `/api/problems/getProblemBySlug?slug=${slug}`
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching problem by slug:", error);
+    throw error;
+  }
+};
+
+const submitSolution = async (solutionData) => {
+  try {
+    const response = await axiosInstance.post(
+      `/api/submissions/run`,
+      solutionData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting solution:", error);
+    throw error;
+  }
+};
+
+const finalSubmitSolution = async (solutionData) => {
+  try {
+    const response = await axiosInstance.post(
+      `/api/submissions/submit`,
+      solutionData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting solution:", error);
     throw error;
   }
 };
@@ -36,6 +62,8 @@ const ProblemService = {
   getProblem,
   createProblem,
   getProblemBySlug,
+  submitSolution,
+  finalSubmitSolution,
 };
 
 export default ProblemService;

@@ -1,7 +1,7 @@
 export type Difficulty = "Easy" | "Medium" | "Hard";
 
 export interface Problem {
-  id: number;
+  _id: string;
   title: string;
   slug: string;
   difficulty: Difficulty;
@@ -30,7 +30,7 @@ export interface Problem {
 
 export const problems: Problem[] = [
   {
-    id: 1,
+    _id: "1",
     title: "Two Sum",
     slug: "two-sum",
     difficulty: "Easy",
@@ -56,7 +56,7 @@ export const problems: Problem[] = [
       "2 <= nums.length <= 10^4",
       "-10^9 <= nums[i] <= 10^9",
       "-10^9 <= target <= 10^9",
-      "Only one valid answer exists.",
+      "Only one val_id answer exists.",
     ],
     starterCode: {
       javascript: `/**
@@ -110,7 +110,7 @@ public:
     },
   },
   {
-    id: 2,
+    _id: "2",
     title: "Add Two Numbers",
     slug: "add-two-numbers",
     difficulty: "Medium",
@@ -249,12 +249,12 @@ class Solution {
     },
   },
   {
-    id: 3,
+    _id: "3",
     title: "Longest Substring Without Repeating Characters",
     slug: "longest-substring-without-repeating-characters",
     difficulty: "Medium",
     acceptance: 33.8,
-    tags: ["Hash Table", "String", "Sliding Window"],
+    tags: ["Hash Table", "String", "Sl_iding Window"],
     description: `Given a string <code>s</code>, find the length of the <strong>longest substring</strong> without repeating characters.`,
     examples: [
       {
@@ -327,12 +327,12 @@ public:
     },
   },
   {
-    id: 4,
+    _id: "4",
     title: "Median of Two Sorted Arrays",
     slug: "median-of-two-sorted-arrays",
     difficulty: "Hard",
     acceptance: 36.1,
-    tags: ["Array", "Binary Search", "Divide and Conquer"],
+    tags: ["Array", "Binary Search", "Div_ide and Conquer"],
     description: `Given two sorted arrays <code>nums1</code> and <code>nums2</code> of size <code>m</code> and <code>n</code> respectively, return <strong>the median</strong> of the two sorted arrays.\n\nThe overall run time complexity should be <code>O(log (m+n))</code>.`,
     examples: [
       {
@@ -407,13 +407,13 @@ public:
     },
   },
   {
-    id: 5,
-    title: "Valid Parentheses",
-    slug: "valid-parentheses",
+    _id: "5",
+    title: "Val_id Parentheses",
+    slug: "val_id-parentheses",
     difficulty: "Easy",
     acceptance: 40.7,
     tags: ["String", "Stack"],
-    description: `Given a string <code>s</code> containing just the characters <code>'('</code>, <code>')'</code>, <code>'{'</code>, <code>'}'</code>, <code>'['</code> and <code>']'</code>, determine if the input string is valid.\n\nAn input string is valid if:\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.`,
+    description: `Given a string <code>s</code> containing just the characters <code>'('</code>, <code>')'</code>, <code>'{'</code>, <code>'}'</code>, <code>'['</code> and <code>']'</code>, determine if the input string is val_id.\n\nAn input string is val_id if:\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.`,
     examples: [
       {
         input: 's = "()"',
@@ -437,21 +437,21 @@ public:
  * @param {string} s
  * @return {boolean}
  */
-var isValid = function(s) {
+var isVal_id = function(s) {
     // Your code here
 };`,
       python: `class Solution:
-    def isValid(self, s: str) -> bool:
+    def isVal_id(self, s: str) -> bool:
         # Your code here
         pass`,
       cpp: `class Solution {
 public:
-    bool isValid(string s) {
+    bool isVal_id(string s) {
         // Your code here
     }
 };`,
       java: `class Solution {
-    public boolean isValid(String s) {
+    public boolean isVal_id(String s) {
         // Your code here
     }
 }`,
@@ -461,28 +461,28 @@ public:
  * @param {string} s
  * @return {boolean}
  */
-var isValid = function(s) {
+var isVal_id = function(s) {
     // Your code here
 };`,
       python: `class Solution:
-    def isValid(self, s: str) -> bool:
+    def isVal_id(self, s: str) -> bool:
         # Your code here
         pass`,
       cpp: `class Solution {
 public:
-    bool isValid(string s) {
+    bool isVal_id(string s) {
         // Your code here
     }
 };`,
       java: `class Solution {
-    public boolean isValid(String s) {
+    public boolean isVal_id(String s) {
         // Your code here
     }
 }`,
     },
   },
   {
-    id: 6,
+    _id: "6",
     title: "Merge Two Sorted Lists",
     slug: "merge-two-sorted-lists",
     difficulty: "Easy",
@@ -624,12 +624,12 @@ class Solution {
     },
   },
   {
-    id: 7,
+    _id: "7",
     title: "Maximum Subarray",
     slug: "maximum-subarray",
     difficulty: "Medium",
     acceptance: 50.2,
-    tags: ["Array", "Divide and Conquer", "Dynamic Programming"],
+    tags: ["Array", "Div_ide and Conquer", "Dynamic Programming"],
     description: `Given an integer array <code>nums</code>, find the subarray with the largest sum, and return its sum.`,
     examples: [
       {
@@ -699,13 +699,13 @@ public:
     },
   },
   {
-    id: 8,
+    _id: "8",
     title: "Trapping Rain Water",
     slug: "trapping-rain-water",
     difficulty: "Hard",
     acceptance: 58.7,
     tags: ["Array", "Two Pointers", "Dynamic Programming", "Stack"],
-    description: `Given <code>n</code> non-negative integers representing an elevation map where the width of each bar is <code>1</code>, compute how much water it can trap after raining.`,
+    description: `Given <code>n</code> non-negative integers representing an elevation map where the w_idth of each bar is <code>1</code>, compute how much water it can trap after raining.`,
     examples: [
       {
         input: "height = [0,1,0,2,1,0,1,3,2,1,2,1]",
