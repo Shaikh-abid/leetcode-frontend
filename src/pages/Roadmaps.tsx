@@ -339,14 +339,16 @@ export default function Roadmaps() {
                   <span className="text-sm text-muted-foreground">
                     {roadmap.estimatedTime}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1 text-primary hover:text-primary"
-                  >
-                    View Roadmap
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                  <Link to={`/roadmaps/${roadmap.id}`}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1 text-primary hover:text-primary"
+                    >
+                      View Roadmap
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

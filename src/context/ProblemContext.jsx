@@ -19,8 +19,6 @@ const ProblemContextProvider = ({ children }) => {
         try {
             const data = await ProblemService.getProblem();
             setProblems(data);
-
-            navigate('/problems');
         } catch (err) {
             setError(err.response?.data?.message || "Failed to fetch problems");
             toast.error("Failed to fetch problems");

@@ -1,26 +1,29 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  User, 
-  MapPin, 
-  Link as LinkIcon, 
-  Calendar, 
-  Github, 
+import {
+  MapPin,
+  Link as LinkIcon,
+  Calendar,
+  Github,
   Linkedin,
-  Target,
-  Flame,
-  Edit2,
   Plus,
   ListMusic,
   Trash2,
   Heart,
   X,
   Search,
-  Check
+  Check,
+  BookOpen,
+  Code2,
+  Trophy,
+  Clock,
+  Edit2,
+  Loader2
 } from "lucide-react";
 import {
   Dialog,
@@ -30,80 +33,117 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { problems } from "@/data/problems";
+import { useAuth } from "../context/AuthContext";
+import { useProblem } from "../context/ProblemContext";
+import { usePlaylist } from "../context/PlaylistContext";
+import { Problem } from "../data/problems";
 
+// --- UPDATED INTERFACES TO MATCH MONGODB (_id) ---
 interface PlaylistProblem {
-  id: number;
+  _id: string;
   title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: "easy" | "medium" | "hard";
+  slug?: string;
 }
 
 interface Playlist {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   problems: PlaylistProblem[];
   createdAt: string;
 }
 
-const userProfile = {
-  name: "Alex Johnson",
-  username: "alexj_dev",
-  avatar: null,
-  location: "San Francisco, CA",
-  website: "https://alexjohnson.dev",
-  github: "alexjohnson",
-  linkedin: "alexjohnson",
-  joinedDate: "March 2023",
-  bio: "Full-stack developer passionate about algorithms and system design. Currently preparing for FAANG interviews.",
-  stats: {
-    totalSolved: 287,
-    easySolved: 125,
-    mediumSolved: 132,
-    hardSolved: 30,
-    ranking: 15420,
-    streak: 45,
-    contestsParticipated: 12,
-    contestRating: 1650,
-  },
-  recentActivity: [
-    { date: "Today", problems: ["Two Sum", "Valid Parentheses"] },
-    { date: "Yesterday", problems: ["Add Two Numbers", "Merge Two Sorted Lists"] },
-    { date: "2 days ago", problems: ["Maximum Subarray"] },
-  ],
-  skills: ["Dynamic Programming", "Graph Algorithms", "Binary Search", "Two Pointers", "Sliding Window"],
+interface UserProfileData {
+  name: string;
+  username: string;
+  city: string;
+  country: string;
+  website?: string;
+  joinedDate?: string;
+  bio?: string;
+  skills?: string[];
+  recentActivity?: { date: string; problems: string[] }[];
+}
+
+const initialUserProfile: UserProfileData = {
+  name: "User",
+  username: "user",
+  city: "",
+  country: "",
+  website: "",
+  joinedDate: "",
+  bio: "",
+  skills: [],
+  recentActivity: [],
 };
 
-const initialPlaylists: Playlist[] = [
-  {
-    id: "1",
-    title: "FAANG Interview Prep",
-    description: "Must-solve problems for top tech company interviews",
-    problems: [
-      { id: 1, title: "Two Sum", difficulty: "Easy" },
-      { id: 2, title: "LRU Cache", difficulty: "Medium" },
-      { id: 3, title: "Merge K Sorted Lists", difficulty: "Hard" },
-    ],
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Dynamic Programming",
-    description: "Essential DP patterns and problems",
-    problems: [
-      { id: 4, title: "Climbing Stairs", difficulty: "Easy" },
-      { id: 5, title: "Coin Change", difficulty: "Medium" },
-    ],
-    createdAt: "2024-01-10",
-  },
-];
-
 export default function Profile() {
-  const { stats } = userProfile;
-  const totalProblems = 2500;
-  const progressPercentage = (stats.totalSolved / totalProblems) * 100;
+  const { updateUserProfileInfo, user } = useAuth();
 
-  const [playlists, setPlaylists] = useState<Playlist[]>(initialPlaylists);
+  // FIX 1: Destructure fetchAllProblems to load data
+  const { problems, fetchAllProblems } = useProblem();
+
+  const {
+    playlists,
+    fetchPlaylists,
+    createNewPlaylist,
+    addProblemToPlaylist,
+    removeProblemFromPlaylist,
+    removePlaylist,
+    loading: playlistLoading
+  } = usePlaylist();
+
+  const [userProfile, setUserProfile] = useState<UserProfileData>(initialUserProfile);
+
+  // FIX 2: Fetch problems AND playlists on mount
+  useEffect(() => {
+    fetchPlaylists();
+    fetchAllProblems();
+  }, []);
+
+  // Calculate Real Stats
+  const calculatedStats = useMemo(() => {
+    if (!user || !problems) return { total: 0, easy: 0, medium: 0, hard: 0, monthsActive: 0 };
+
+    const solvedSet = new Set(user.solvedProblems || []);
+    let easy = 0, medium = 0, hard = 0;
+
+    problems.forEach((p: Problem) => {
+      if (solvedSet.has(p._id)) {
+        const diff = p.difficulty.toLowerCase();
+        if (diff === "easy") easy++;
+        else if (diff === "medium") medium++;
+        else if (diff === "hard") hard++;
+      }
+    });
+
+    const joined = new Date(user.createdAt || Date.now());
+    const now = new Date();
+    const monthsActive = (now.getFullYear() - joined.getFullYear()) * 12 + (now.getMonth() - joined.getMonth()) || 1;
+
+    return { total: solvedSet.size, easy, medium, hard, monthsActive };
+  }, [user, problems]);
+
+  useEffect(() => {
+    if (user) {
+      setUserProfile({
+        name: user.name || user.username || "User",
+        username: user.username || "user",
+        city: user.city || "Unknown City",
+        country: user.country || "Unknown Country",
+        website: user.website || "",
+        bio: user.bio || "No bio yet.",
+        skills: user.skills || [],
+        joinedDate: new Date(user.createdAt).toLocaleDateString("en-US", { month: 'long', year: 'numeric' }),
+        recentActivity: []
+      });
+    }
+  }, [user]);
+
+  const TOTAL_PLATFORM_PROBLEMS = problems.length || 2000;
+  const progressPercentage = (calculatedStats.total / TOTAL_PLATFORM_PROBLEMS) * 100;
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAddProblemsOpen, setIsAddProblemsOpen] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
@@ -112,75 +152,102 @@ export default function Profile() {
   const [expandedPlaylist, setExpandedPlaylist] = useState<string | null>(null);
   const [justCreatedPlaylistId, setJustCreatedPlaylistId] = useState<string | null>(null);
 
-  const handleCreatePlaylist = () => {
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [editProfile, setEditProfile] = useState({
+    city: "",
+    country: "",
+    bio: "",
+    skills: [] as string[],
+  });
+  const [newSkill, setNewSkill] = useState("");
+
+  useEffect(() => {
+    if (isEditProfileOpen) {
+      setEditProfile({
+        city: userProfile.city,
+        country: userProfile.country,
+        bio: userProfile.bio || "",
+        skills: userProfile.skills || [],
+      });
+    }
+  }, [isEditProfileOpen, userProfile]);
+
+  const handleSaveProfile = () => {
+    updateUserProfileInfo({
+      city: editProfile.city,
+      country: editProfile.country,
+      bio: editProfile.bio,
+      skills: editProfile.skills,
+    });
+    setIsEditProfileOpen(false);
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill.trim() && !editProfile.skills.includes(newSkill.trim())) {
+      setEditProfile({
+        ...editProfile,
+        skills: [...editProfile.skills, newSkill.trim()],
+      });
+      setNewSkill("");
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setEditProfile({
+      ...editProfile,
+      skills: editProfile.skills.filter(skill => skill !== skillToRemove),
+    });
+  };
+
+  // --- API HANDLERS ---
+
+  const handleCreatePlaylist = async () => {
     if (!newPlaylist.title.trim()) return;
-    
-    const playlistId = Date.now().toString();
-    const playlist: Playlist = {
-      id: playlistId,
-      title: newPlaylist.title,
-      description: newPlaylist.description,
-      problems: [],
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    
-    setPlaylists([playlist, ...playlists]);
-    setNewPlaylist({ title: "", description: "" });
-    setIsCreateOpen(false);
-    setJustCreatedPlaylistId(playlistId);
-    setSelectedPlaylistId(playlistId);
-    setIsAddProblemsOpen(true);
-  };
+    try {
+      const createdPlaylist = await createNewPlaylist(newPlaylist.title, newPlaylist.description);
+      setNewPlaylist({ title: "", description: "" });
+      setIsCreateOpen(false);
 
-  const handleDeletePlaylist = (id: string) => {
-    setPlaylists(playlists.filter(p => p.id !== id));
-  };
-
-  const handleRemoveProblem = (playlistId: string, problemId: number) => {
-    setPlaylists(playlists.map(p => 
-      p.id === playlistId 
-        ? { ...p, problems: p.problems.filter(prob => prob.id !== problemId) }
-        : p
-    ));
-  };
-
-  const handleAddProblemToPlaylist = (playlistId: string, problem: PlaylistProblem) => {
-    setPlaylists(playlists.map(p => {
-      if (p.id === playlistId) {
-        // Check if problem already exists
-        if (p.problems.some(prob => prob.id === problem.id)) {
-          return p;
-        }
-        return { ...p, problems: [...p.problems, problem] };
+      if (createdPlaylist && createdPlaylist._id) {
+        setJustCreatedPlaylistId(createdPlaylist._id);
+        setSelectedPlaylistId(createdPlaylist._id);
+        setIsAddProblemsOpen(true);
       }
-      return p;
-    }));
+    } catch (error) {
+      console.error("Failed to create playlist");
+    }
   };
 
-  const handleRemoveProblemFromPlaylist = (playlistId: string, problemId: number) => {
-    setPlaylists(playlists.map(p => 
-      p.id === playlistId 
-        ? { ...p, problems: p.problems.filter(prob => prob.id !== problemId) }
-        : p
-    ));
+  const handleDeletePlaylist = async (id: string) => {
+    if (confirm("Are you sure you want to delete this playlist?")) {
+      await removePlaylist(id);
+    }
   };
 
-  const isProblemInPlaylist = (playlistId: string, problemId: number) => {
-    const playlist = playlists.find(p => p.id === playlistId);
-    return playlist?.problems.some(prob => prob.id === problemId) || false;
+  const handleRemoveProblem = async (playlistId: string, problemId: string) => {
+    await removeProblemFromPlaylist(playlistId, problemId);
   };
 
-  const filteredProblems = problems.filter(problem =>
+  const handleAddProblem = async (playlistId: string, problemId: string) => {
+    await addProblemToPlaylist(playlistId, problemId);
+  };
+
+  const isProblemInPlaylist = (playlistId: string, problemId: string) => {
+    const playlist = playlists?.find((p: any) => p._id === playlistId);
+    return playlist?.problems?.some((prob: any) => prob._id === problemId) || false;
+  };
+
+  const filteredProblemsForPlaylist = problems.filter((problem: Problem) =>
     problem.title.toLowerCase().includes(problemSearchQuery.toLowerCase())
   );
 
-  const selectedPlaylist = playlists.find(p => p.id === selectedPlaylistId);
+  const selectedPlaylist = playlists?.find((p: any) => p._id === selectedPlaylistId);
 
   const getDifficultyClass = (difficulty: string) => {
-    switch (difficulty) {
-      case "Easy": return "bg-difficulty-easy/15 text-difficulty-easy";
-      case "Medium": return "bg-difficulty-medium/15 text-difficulty-medium";
-      case "Hard": return "bg-difficulty-hard/15 text-difficulty-hard";
+    switch (difficulty?.toLowerCase()) {
+      case "easy": return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "medium": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      case "hard": return "bg-red-500/10 text-red-500 border-red-500/20";
       default: return "";
     }
   };
@@ -194,36 +261,110 @@ export default function Profile() {
             {/* Profile Card */}
             <div className="glass-card p-6">
               <div className="flex justify-between items-start mb-4">
-                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-primary-foreground">
+                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-primary-foreground uppercase">
                   {userProfile.name.charAt(0)}
                 </div>
-                <Button variant="ghost" size="icon">
-                  <Edit2 className="w-4 h-4" />
-                </Button>
+                <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="glass-card border-border max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile</DialogTitle>
+                      <DialogDescription>Update your profile information</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">City</label>
+                          <Input
+                            placeholder="e.g., San Francisco"
+                            value={editProfile.city}
+                            onChange={(e) => setEditProfile({ ...editProfile, city: e.target.value })}
+                            className="bg-secondary/50 border-border"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Country</label>
+                          <Input
+                            placeholder="e.g., United States"
+                            value={editProfile.country}
+                            onChange={(e) => setEditProfile({ ...editProfile, country: e.target.value })}
+                            className="bg-secondary/50 border-border"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Bio</label>
+                        <Textarea
+                          placeholder="Tell us about yourself..."
+                          value={editProfile.bio}
+                          onChange={(e) => setEditProfile({ ...editProfile, bio: e.target.value })}
+                          className="bg-secondary/50 border-border resize-none"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Skills</label>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {editProfile.skills.map((skill) => (
+                            <Badge key={skill} variant="secondary" className="text-xs flex items-center gap-1 pr-1">
+                              {skill}
+                              <button onClick={() => handleRemoveSkill(skill)} className="ml-1 hover:text-destructive transition-colors">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add a skill..."
+                            value={newSkill}
+                            onChange={(e) => setNewSkill(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddSkill();
+                              }
+                            }}
+                            className="bg-secondary/50 border-border"
+                          />
+                          <Button type="button" variant="outline" size="icon" onClick={handleAddSkill}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Button onClick={handleSaveProfile} className="w-full">Save Changes</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              
+
               <h1 className="text-2xl font-bold mb-1">{userProfile.name}</h1>
               <p className="text-muted-foreground mb-4">@{userProfile.username}</p>
-              
               <p className="text-sm text-foreground/80 mb-4">{userProfile.bio}</p>
-              
+
               <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  {userProfile.location}
+                  {userProfile.city || "Unknown"}, {userProfile.country || "Unknown"}
                 </div>
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="w-4 h-4" />
-                  <a href={userProfile.website} className="text-primary hover:underline">
-                    {userProfile.website.replace("https://", "")}
-                  </a>
-                </div>
+                {userProfile.website && (
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="w-4 h-4" />
+                    <a href={userProfile.website} className="text-primary hover:underline">
+                      {userProfile.website.replace("https://", "")}
+                    </a>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   Joined {userProfile.joinedDate}
                 </div>
               </div>
-              
+
               <div className="flex gap-3 mt-4 pt-4 border-t border-border">
                 <a href="#" className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-accent transition-colors">
                   <Github className="w-4 h-4" />
@@ -238,53 +379,62 @@ export default function Profile() {
             <div className="glass-card p-6">
               <h3 className="font-semibold mb-4">Skills</h3>
               <div className="flex flex-wrap gap-2">
-                {userProfile.skills.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs">
-                    {skill}
-                  </Badge>
-                ))}
+                {userProfile.skills && userProfile.skills.length > 0 ? (
+                  userProfile.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-xs">
+                      {skill}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No skills added yet.</span>
+                )}
               </div>
             </div>
           </div>
 
           {/* Right Column - Stats & Activity */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Stats Overview */}
+
+            {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass-card p-4 text-center">
-                <div className="text-3xl font-bold text-primary">{stats.totalSolved}</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Code2 className="w-5 h-5 text-primary" />
+                </div>
+                <div className="text-3xl font-bold text-primary">{calculatedStats.total}</div>
                 <div className="text-sm text-muted-foreground">Problems Solved</div>
               </div>
               <div className="glass-card p-4 text-center">
-                <div className="text-3xl font-bold text-foreground">#{stats.ranking}</div>
-                <div className="text-sm text-muted-foreground">Global Ranking</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-difficulty-easy/20 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-difficulty-easy" />
+                </div>
+                <div className="text-3xl font-bold text-difficulty-easy">{playlists.length}</div>
+                <div className="text-sm text-muted-foreground">Playlists Created</div>
               </div>
               <div className="glass-card p-4 text-center">
-                <div className="text-3xl font-bold text-orange-500">{stats.streak}</div>
-                <div className="text-sm text-muted-foreground">Day Streak 🔥</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-difficulty-medium/20 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-difficulty-medium" />
+                </div>
+                <div className="text-3xl font-bold text-difficulty-medium">{userProfile.skills?.length || 0}</div>
+                <div className="text-sm text-muted-foreground">Skills Mastered</div>
               </div>
               <div className="glass-card p-4 text-center">
-                <div className="text-3xl font-bold text-primary">{stats.contestRating}</div>
-                <div className="text-sm text-muted-foreground">Contest Rating</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-accent/50 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-foreground" />
+                </div>
+                <div className="text-3xl font-bold text-foreground">{calculatedStats.monthsActive}+</div>
+                <div className="text-sm text-muted-foreground">Months Active</div>
               </div>
             </div>
 
-            {/* Problem Solving Progress */}
+            {/* Solved Problems Progress */}
             <div className="glass-card p-6">
               <h3 className="font-semibold mb-6">Solved Problems</h3>
-              
+
               <div className="flex items-center gap-8 mb-6">
-                {/* Circular Progress */}
                 <div className="relative w-32 h-32">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle
-                      className="stroke-secondary"
-                      strokeWidth="10"
-                      fill="transparent"
-                      r="52"
-                      cx="64"
-                      cy="64"
-                    />
+                    <circle className="stroke-secondary" strokeWidth="10" fill="transparent" r="52" cx="64" cy="64" />
                     <circle
                       className="stroke-primary"
                       strokeWidth="10"
@@ -297,72 +447,40 @@ export default function Profile() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold">{stats.totalSolved}</span>
+                    <span className="text-2xl font-bold">{calculatedStats.total}</span>
                     <span className="text-xs text-muted-foreground">solved</span>
                   </div>
                 </div>
 
-                {/* Difficulty Breakdown */}
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="difficulty-easy font-medium">Easy</span>
-                      <span className="text-muted-foreground">{stats.easySolved} / 750</span>
+                      <span className="text-green-500 font-medium">Easy</span>
+                      <span className="text-muted-foreground">{calculatedStats.easy}</span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-difficulty-easy rounded-full"
-                        style={{ width: `${(stats.easySolved / 750) * 100}%` }}
-                      />
+                      <div className="h-full bg-green-500 rounded-full" style={{ width: `${(calculatedStats.easy / (calculatedStats.total || 1)) * 100}%` }} />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="difficulty-medium font-medium">Medium</span>
-                      <span className="text-muted-foreground">{stats.mediumSolved} / 1250</span>
+                      <span className="text-yellow-500 font-medium">Medium</span>
+                      <span className="text-muted-foreground">{calculatedStats.medium}</span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-difficulty-medium rounded-full"
-                        style={{ width: `${(stats.mediumSolved / 1250) * 100}%` }}
-                      />
+                      <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${(calculatedStats.medium / (calculatedStats.total || 1)) * 100}%` }} />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="difficulty-hard font-medium">Hard</span>
-                      <span className="text-muted-foreground">{stats.hardSolved} / 500</span>
+                      <span className="text-red-500 font-medium">Hard</span>
+                      <span className="text-muted-foreground">{calculatedStats.hard}</span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-difficulty-hard rounded-full"
-                        style={{ width: `${(stats.hardSolved / 500) * 100}%` }}
-                      />
+                      <div className="h-full bg-red-500 rounded-full" style={{ width: `${(calculatedStats.hard / (calculatedStats.total || 1)) * 100}%` }} />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="glass-card p-6">
-              <h3 className="font-semibold mb-4">Recent Activity</h3>
-              <div className="space-y-4">
-                {userProfile.recentActivity.map((activity) => (
-                  <div key={activity.date} className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1">{activity.date}</div>
-                      <div className="flex flex-wrap gap-2">
-                        {activity.problems.map((problem) => (
-                          <Badge key={problem} variant="secondary" className="text-xs">
-                            {problem}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -383,9 +501,7 @@ export default function Profile() {
                   <DialogContent className="glass-card border-border">
                     <DialogHeader>
                       <DialogTitle>Create New Playlist</DialogTitle>
-                      <DialogDescription>
-                        Create a playlist to organize your favorite problems
-                      </DialogDescription>
+                      <DialogDescription>Create a playlist to organize your favorite problems</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <div>
@@ -407,8 +523,8 @@ export default function Profile() {
                           rows={3}
                         />
                       </div>
-                      <Button onClick={handleCreatePlaylist} className="w-full">
-                        Create Playlist
+                      <Button onClick={handleCreatePlaylist} className="w-full" disabled={playlistLoading}>
+                        {playlistLoading ? <Loader2 className="animate-spin w-4 h-4" /> : "Create Playlist"}
                       </Button>
                     </div>
                   </DialogContent>
@@ -422,16 +538,11 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {playlists.map((playlist) => (
-                    <div 
-                      key={playlist.id} 
-                      className="border border-border rounded-lg overflow-hidden"
-                    >
-                      <div 
+                  {playlists.map((playlist: any) => (
+                    <div key={playlist._id} className="border border-border rounded-lg overflow-hidden">
+                      <div
                         className="p-4 bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors"
-                        onClick={() => setExpandedPlaylist(
-                          expandedPlaylist === playlist.id ? null : playlist.id
-                        )}
+                        onClick={() => setExpandedPlaylist(expandedPlaylist === playlist._id ? null : playlist._id)}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -441,7 +552,7 @@ export default function Profile() {
                             <div>
                               <h4 className="font-medium">{playlist.title}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {playlist.problems.length} problems • Created {playlist.createdAt}
+                                {playlist.problems.length} problems • Created {new Date(playlist.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
@@ -452,7 +563,7 @@ export default function Profile() {
                               className="gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedPlaylistId(playlist.id);
+                                setSelectedPlaylistId(playlist._id);
                                 setIsAddProblemsOpen(true);
                               }}
                             >
@@ -465,21 +576,17 @@ export default function Profile() {
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeletePlaylist(playlist.id);
+                                handleDeletePlaylist(playlist._id);
                               }}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
-                        {playlist.description && (
-                          <p className="text-sm text-muted-foreground mt-2 ml-13">
-                            {playlist.description}
-                          </p>
-                        )}
+                        {playlist.description && <p className="text-sm text-muted-foreground mt-2 ml-13">{playlist.description}</p>}
                       </div>
 
-                      {expandedPlaylist === playlist.id && (
+                      {expandedPlaylist === playlist._id && (
                         <div className="border-t border-border">
                           {playlist.problems.length === 0 ? (
                             <div className="p-4 text-center text-muted-foreground text-sm">
@@ -487,22 +594,17 @@ export default function Profile() {
                             </div>
                           ) : (
                             <div className="divide-y divide-border">
-                              {playlist.problems.map((problem) => (
-                                <div 
-                                  key={problem.id}
-                                  className="p-3 flex items-center justify-between hover:bg-secondary/20"
-                                >
+                              {playlist.problems.map((problem: any) => (
+                                <div key={problem._id} className="p-3 flex items-center justify-between hover:bg-secondary/20">
                                   <div className="flex items-center gap-3">
                                     <span className="text-sm font-medium">{problem.title}</span>
-                                    <Badge className={`text-xs ${getDifficultyClass(problem.difficulty)}`}>
-                                      {problem.difficulty}
-                                    </Badge>
+                                    <Badge className={`text-xs ${getDifficultyClass(problem.difficulty)}`}>{problem.difficulty}</Badge>
                                   </div>
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleRemoveProblem(playlist.id, problem.id)}
+                                    onClick={() => handleRemoveProblem(playlist._id, problem._id)}
                                   >
                                     <X className="w-4 h-4" />
                                   </Button>
@@ -530,7 +632,7 @@ export default function Profile() {
                 <DialogHeader>
                   <DialogTitle>Add Problems to {selectedPlaylist?.title}</DialogTitle>
                   <DialogDescription>
-                    {justCreatedPlaylistId === selectedPlaylistId 
+                    {justCreatedPlaylistId === selectedPlaylistId
                       ? "Your playlist was created! Now add some problems to it."
                       : "Search and add problems to your playlist"
                     }
@@ -547,20 +649,20 @@ export default function Profile() {
                     />
                   </div>
                   <div className="max-h-[400px] overflow-y-auto space-y-2">
-                    {filteredProblems.map((problem) => {
-                      const isAdded = selectedPlaylistId ? isProblemInPlaylist(selectedPlaylistId, problem.id) : false;
+                    {filteredProblemsForPlaylist.map((problem: Problem) => {
+                      // FIX 3: Use string ID comparison
+                      const isAdded = selectedPlaylistId ? isProblemInPlaylist(selectedPlaylistId, problem._id) : false;
+
                       return (
                         <div
-                          key={problem.id}
-                          className={`p-3 rounded-lg border transition-colors ${
-                            isAdded 
-                              ? "border-primary/50 bg-primary/10" 
-                              : "border-border bg-secondary/30 hover:bg-secondary/50"
-                          }`}
+                          key={problem._id}
+                          className={`p-3 rounded-lg border transition-colors ${isAdded
+                            ? "border-primary/50 bg-primary/10"
+                            : "border-border bg-secondary/30 hover:bg-secondary/50"
+                            }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="text-sm text-muted-foreground w-6">{problem.id}.</span>
                               <span className="text-sm font-medium">{problem.title}</span>
                               <Badge className={`text-xs ${getDifficultyClass(problem.difficulty)}`}>
                                 {problem.difficulty}
@@ -573,13 +675,10 @@ export default function Profile() {
                               onClick={() => {
                                 if (selectedPlaylistId) {
                                   if (isAdded) {
-                                    handleRemoveProblemFromPlaylist(selectedPlaylistId, problem.id);
+                                    handleRemoveProblem(selectedPlaylistId, problem._id);
                                   } else {
-                                    handleAddProblemToPlaylist(selectedPlaylistId, {
-                                      id: problem.id,
-                                      title: problem.title,
-                                      difficulty: problem.difficulty,
-                                    });
+                                    // FIX 4: Pass ID string directly to the helper function
+                                    handleAddProblem(selectedPlaylistId, problem._id);
                                   }
                                 }
                               }}
@@ -601,15 +700,11 @@ export default function Profile() {
                       );
                     })}
                   </div>
-                  <Button 
-                    onClick={() => setIsAddProblemsOpen(false)} 
-                    className="w-full"
-                  >
-                    Done
-                  </Button>
+                  <Button onClick={() => setIsAddProblemsOpen(false)} className="w-full">Done</Button>
                 </div>
               </DialogContent>
             </Dialog>
+
           </div>
         </div>
       </div>

@@ -91,6 +91,22 @@ export const AuthContextProvider = ({ children }) => {
         window.location.href = "http://localhost:5000/api/auth/google";
     };
 
+    const updateUserProfileInfo = async (formData) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await AuthService.updateUserProfileInfoService(formData);
+            setUser(data.user);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            return data;
+        } catch (err) {
+            setError(err.response?.data?.message || "Profile update failed");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -100,6 +116,7 @@ export const AuthContextProvider = ({ children }) => {
             register,
             logout,
             googleLogin,
+            updateUserProfileInfo,
             isAuthenticated: !!user,
         }}>
             {children}

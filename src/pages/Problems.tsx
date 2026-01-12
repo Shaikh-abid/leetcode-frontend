@@ -23,25 +23,22 @@ import {
   Loader2
 } from "lucide-react";
 import { useProblem } from "../context/ProblemContext";
+import { useAuth } from "../context/AuthContext";
 import { Problem } from "../data/problems";
+
 const ITEMS_PER_PAGE = 10;
 
-
 // Helper to generate a "random" acceptance rate that stays consistent for the same problem ID
-// We use the ID string to create a seed so the number doesn't change on re-renders
 const getAcceptanceRate = (id: string, difficulty: string) => {
-  // Simple hash function from ID
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
     hash = id.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // Base ranges based on difficulty
-  let min = 30, max = 60; // Default (Medium)
+  let min = 30, max = 60;
   if (difficulty === "Easy") { min = 60; max = 95; }
   if (difficulty === "Hard") { min = 10; max = 45; }
 
-  // Normalize hash to range
   const random = Math.abs(hash % (max - min)) + min;
   return random.toFixed(1);
 };
@@ -56,12 +53,13 @@ export default function Problems() {
 
   // 1. Get Real Data from Context
   const { problems, fetchAllProblems, loading } = useProblem();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchAllProblems();
   }, []);
 
-  // 2. Derive unique tags dynamically from the fetched problems
+  // 2. Derive unique tags dynamically
   const allTags = useMemo(() => {
     const tags = new Set<string>();
     problems.forEach((p: Problem) => {
@@ -72,9 +70,15 @@ export default function Problems() {
     return Array.from(tags).sort();
   }, [problems]);
 
-  // Mock solved problems (In real app, fetch from User Profile -> solvedProblems array)
-  // We use a Set of ID strings now
-  const solvedProblems = new Set<string>([]);
+  // 3. ✨ REAL SOLVED PROBLEMS LOGIC ✨
+  // We transform the user's array into a Set for O(1) lookup speed
+  const solvedProblems = useMemo(() => {
+    // Check if user exists and has the array
+    if (user?.solvedProblems && Array.isArray(user.solvedProblems)) {
+      return new Set(user.solvedProblems);
+    }
+    return new Set();
+  }, [user]);
 
   const filteredProblems = useMemo(() => {
     if (!problems) return [];
@@ -84,11 +88,11 @@ export default function Problems() {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
-      // Note: Backend stores difficulty as "Easy" (Capitalized), ensure match
       const matchesDifficulty =
         difficultyFilter === "all" ||
         problem.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
 
+      // Updated Logic using the real Set
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "solved" && solvedProblems.has(problem._id)) ||
@@ -100,7 +104,7 @@ export default function Problems() {
 
       return matchesSearch && matchesDifficulty && matchesStatus && matchesTags;
     });
-  }, [searchQuery, difficultyFilter, statusFilter, selectedTags, problems]);
+  }, [searchQuery, difficultyFilter, statusFilter, selectedTags, problems, solvedProblems]);
 
   const totalPages = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE);
   const paginatedProblems = filteredProblems.slice(
@@ -213,7 +217,7 @@ export default function Problems() {
               </Button>
 
               {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 z-50 max-h-64 overflow-y-auto shadow-lg">
+                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 max-h-64 overflow-y-auto shadow-lg">
                   <div className="flex flex-wrap gap-2">
                     {allTags.map((tag) => (
                       <Badge
@@ -270,7 +274,6 @@ export default function Problems() {
           {/* Table Body */}
           {paginatedProblems.length > 0 ? (
             paginatedProblems.map((problem: Problem, index: number) => {
-              // Calculate dynamic acceptance
               const acceptanceRate = getAcceptanceRate(problem._id, problem.difficulty);
 
               return (
@@ -280,6 +283,7 @@ export default function Problems() {
                   className="grid grid-cols-12 gap-4 p-4 border-b border-border last:border-b-0 hover:bg-accent/50 transition-colors items-center"
                 >
                   <div className="col-span-1">
+                    {/* CHECK THE SET */}
                     {solvedProblems.has(problem._id) ? (
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     ) : (
@@ -288,7 +292,6 @@ export default function Problems() {
                   </div>
                   <div className="col-span-5 lg:col-span-5">
                     <span className="font-medium hover:text-primary transition-colors">
-                      {/* Display Index relative to whole list, or just use index+1 for current page */}
                       {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}. {problem.title}
                     </span>
                   </div>
@@ -316,7 +319,6 @@ export default function Problems() {
                       {problem.difficulty}
                     </span>
                   </div>
-                  {/* 3. Display the Calculated Acceptance */}
                   <div className="col-span-1 text-right text-muted-foreground hidden md:block">
                     {acceptanceRate}%
                   </div>

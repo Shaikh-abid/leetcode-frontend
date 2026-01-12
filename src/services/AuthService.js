@@ -46,12 +46,22 @@ const LogoutService = async () => {
   }
 };
 
+const updateUserProfileInfoService = async (data) => {
+  try {
+    const response = await axiosInstance.put("/api/auth/update-profile", data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const AuthService = {
   RegisterService,
   LoginService,
   GoogleLoginService,
   GoogleAfterLoginService,
   LogoutService,
+  updateUserProfileInfoService,
 };
 
 export default AuthService;
