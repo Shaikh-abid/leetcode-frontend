@@ -10,6 +10,7 @@ const ProblemContextProvider = ({ children }) => {
     const [currentProblem, setCurrentProblem] = useState(null); // The specific problem user is solving
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [mySubmissions, setMySubmissions] = useState([]); // <--- Add State
     const navigate = useNavigate();
 
     // 1. Fetch All Problems (For the list page)
@@ -89,6 +90,18 @@ const ProblemContextProvider = ({ children }) => {
         }
     };
 
+    const fetchSubmissions = async (slug) => {
+        // We don't necessarily want to set global loading true here 
+        // as it might block the editor. Let's handle loading locally in UI or separate state.
+        try {
+            const data = await ProblemService.getSubmissions(slug);
+            setMySubmissions(data.data);
+        } catch (err) {
+            console.error("Failed to fetch submissions", err);
+            toast.error("Could not load submission history");
+        }
+    };
+
 
     return (
         <ProblemContext.Provider
@@ -100,6 +113,9 @@ const ProblemContextProvider = ({ children }) => {
                 fetchAllProblems,
                 fetchProblem,
                 addProblem,
+                fetchSubmissions,
+                mySubmissions,
+                setMySubmissions,
                 runUserCode,
                 finalSubmit
             }}>

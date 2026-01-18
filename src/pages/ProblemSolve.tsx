@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,15 +23,20 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  Clock,
+  ChevronDown,
+  ChevronUp,
   CheckCircle2,
   XCircle,
   Loader2,
   BookOpen,
-  MessageSquare
+  MessageSquare,
+  History,
+  Code,
+  Calendar
 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { useProblem } from "../context/ProblemContext";
+import { useAuth } from "../context/AuthContext";
 import { Problem } from "../data/problems";
 
 // --- TYPES ---
@@ -91,7 +97,15 @@ const StyledText = ({ text, isConstraint = false }: { text: string; isConstraint
 // --- MAIN COMPONENT ---
 export default function ProblemSolve() {
   const { slug } = useParams();
-  const { fetchProblem, currentProblem, problems, error, loading, runUserCode, finalSubmit } = useProblem();
+  const { fetchProblem, currentProblem, problems, error, loading, runUserCode, finalSubmit, fetchSubmissions, mySubmissions } = useProblem();
+  const { user } = useAuth();
+
+  // 1. Add state to track the expanded submission
+  const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(null);
+
+  const toggleSubmission = (id: string) => {
+    setActiveSubmissionId(prev => prev === id ? null : id);
+  };
 
   const [language, setLanguage] = useState<Language>("javascript");
   const [code, setCode] = useState("");
@@ -104,6 +118,11 @@ export default function ProblemSolve() {
   useEffect(() => {
     fetchProblem(slug);
   }, [slug]);
+
+  useEffect(() => {
+    fetchSubmissions(slug);
+  }, [slug]);
+
 
   useEffect(() => {
     if (currentProblem && currentProblem.starterCode) {
@@ -151,6 +170,11 @@ export default function ProblemSolve() {
 
       // 2. Set the result to display detailed output (Test cases)
       setResult(res);
+
+      if (res.status === "Accepted" || res.status === "Wrong Answer") {
+        // 👇 REFRESH HISTORY IMMEDIATELY
+        fetchSubmissions(slug);
+      }
 
       // 3. Show Toast Notification based on status
       if (res.status === "Accepted") {
@@ -211,7 +235,7 @@ export default function ProblemSolve() {
             </Button>
           </Link>
         </div>
-        <Badge variant="outline">{currentProblem.difficulty}</Badge>
+        <Badge variant="outline" className={`text-xs ${currentProblem.difficulty === "easy" ? "bg-green-500" : currentProblem.difficulty === "medium" ? "bg-yellow-500" : "bg-red-500"}`}>{currentProblem.difficulty}</Badge>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -278,7 +302,95 @@ export default function ProblemSolve() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="solutions" className="flex-1 p-6">Solutions...</TabsContent>
+                <TabsContent value="solutions" className="flex-1 overflow-y-auto min-h-0 m-0 p-0">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <History className="w-5 h-5 text-primary" />
+                        Submission History
+                      </h3>
+                    </div>
+
+                    <div className="space-y-3">
+                      {mySubmissions && mySubmissions.length > 0 ? (
+                        mySubmissions.map((sub: any, idx: number) => {
+                          const isOpen = activeSubmissionId === (sub._id || idx);
+
+                          return (
+                            <div
+                              key={sub._id || idx}
+                              className={`border rounded-lg transition-all overflow-hidden ${isOpen
+                                ? "bg-card border-primary/50 ring-1 ring-primary/20"
+                                : "bg-card/50 border-border/50 hover:bg-card/80"
+                                }`}
+                            >
+                              {/* ACCORDION HEADER - CLICK TO TOGGLE */}
+                              <div
+                                onClick={() => toggleSubmission(sub._id || idx)}
+                                className="p-4 cursor-pointer flex items-center justify-between"
+                              >
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-3">
+                                    <span
+                                      className={`font-bold ${sub.status === "Accepted" ? "text-green-500" : "text-red-500"
+                                        }`}
+                                    >
+                                      {sub.status}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      {new Date(sub.createdAt).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Code className="w-3 h-3" />
+                                    <span className="capitalize">{sub.language}</span>
+                                  </div>
+                                </div>
+
+                                {/* Arrow Icon */}
+                                {isOpen ? (
+                                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </div>
+
+                              {/* ACCORDION BODY - EDITOR */}
+                              {isOpen && (
+                                <div className="border-t border-border/50 p-4 bg-background/50">
+                                  <div className="h-[300px] w-full rounded-md overflow-hidden border border-border/30">
+                                    <Editor
+                                      value={sub.code}
+                                      language={sub.language}
+                                      theme="vs-dark"
+                                      // Note: Removed onChange here because this is history (view-only).
+                                      // Added readOnly: true to options so user doesn't try to edit history.
+                                      options={{
+                                        minimap: { enabled: false },
+                                        fontSize: 14,
+                                        automaticLayout: true,
+                                        padding: { top: 16 },
+                                        readOnly: true, // Prevent editing history
+                                        scrollBeyondLastLine: false
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <History className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                          <p>No submissions yet.</p>
+                          <p className="text-xs mt-1">Solve the problem to see your history here!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
           </ResizablePanel>
@@ -309,7 +421,7 @@ export default function ProblemSolve() {
                       onChange={(v) => setCode(v || "")}
                       language={language}
                       theme="vs-dark"
-                      options={{ minimap: { enabled: false }, fontSize: 14, automaticLayout: true, padding: { top: 16 } }}
+                      options={{ minimap: { enabled: false }, fontSize: 16, automaticLayout: true, padding: { top: 16 } }}
                     />
                   </ResizablePanel>
                   <ResizableHandle withHandle />
@@ -393,7 +505,7 @@ export default function ProblemSolve() {
               {/* Action Buttons */}
               <div className="h-14 border-t border-border bg-card/50 flex items-center justify-between px-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" /> <span>Last saved: Just now</span>
+                  {/* <Clock className="w-4 h-4" /> <span>Last saved: Just now</span> */}
                 </div>
                 <div className="flex items-center gap-3">
                   <Button variant="secondary" onClick={handleRun} disabled={isRunning} className="gap-2">

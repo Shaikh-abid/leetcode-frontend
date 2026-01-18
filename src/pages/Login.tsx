@@ -125,7 +125,7 @@ export default function Login() {
 						{error && <p className="text-red-500 my-4">{"*" + error}</p>}
 					</div>
 
-					{/* Sign Up Link */}` `
+					{/* Sign Up Link */}
 					<p className="text-center mt-6 text-muted-foreground">
 						Don't have an account?{" "}
 						<Link to="/signup" className="text-primary hover:underline font-medium">

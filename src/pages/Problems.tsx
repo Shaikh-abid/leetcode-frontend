@@ -152,7 +152,7 @@ export default function Problems() {
         </div>
 
         {/* Filters */}
-        <div className="glass-card p-4 mb-6">
+        <div className="glass-card p-4 mb-6 relative z-20">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
@@ -217,7 +217,7 @@ export default function Problems() {
               </Button>
 
               {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 max-h-64 overflow-y-auto shadow-lg">
+                <div className="absolute top-full left-0 mt-2 w-64 glass-card p-4 max-h-64 overflow-y-auto shadow-lg z-50">
                   <div className="flex flex-wrap gap-2">
                     {allTags.map((tag) => (
                       <Badge
@@ -386,6 +386,6 @@ export default function Problems() {
           </div>
         )}
       </div>
-    </Layout>
+    </Layout >
   );
 }

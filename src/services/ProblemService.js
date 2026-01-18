@@ -58,12 +58,24 @@ const finalSubmitSolution = async (solutionData) => {
   }
 };
 
+const getSubmissions = async (slug) => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/submissions/user-submissions?slug=${slug}`
+    );
+    return response.data; // returns { success: true, data: [...] }
+  } catch (error) {
+    throw error;
+  }
+};
+
 const ProblemService = {
   getProblem,
   createProblem,
   getProblemBySlug,
   submitSolution,
   finalSubmitSolution,
+  getSubmissions,
 };
 
 export default ProblemService;
