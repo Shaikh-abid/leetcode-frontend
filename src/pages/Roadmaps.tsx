@@ -19,7 +19,9 @@ import {
   GitBranch,
   Cpu,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 
 interface Roadmap {
   id: string;
@@ -208,6 +210,7 @@ const categories = [
 export default function Roadmaps() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { user } = useAuth();
 
   const filteredRoadmaps = roadmaps.filter((roadmap) => {
     const matchesSearch =
@@ -233,6 +236,12 @@ export default function Roadmaps() {
         return "";
     }
   };
+
+
+  if (!user) {
+    toast.error("You must be logged in to view roadmaps.");
+    return <Navigate to="/login" />;
+  }
 
   return (
     <Layout>

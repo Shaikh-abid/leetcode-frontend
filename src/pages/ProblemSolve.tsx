@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,8 @@ import {
   MessageSquare,
   History,
   Code,
-  Calendar
+  Calendar,
+  CircleCheckBig
 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { useProblem } from "../context/ProblemContext";
@@ -216,6 +217,11 @@ export default function ProblemSolve() {
     );
   }
 
+  if (!user) {
+    toast.error("You must be logged in to solve problems.");
+    return <Navigate to="/login" />;
+  }
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -235,7 +241,7 @@ export default function ProblemSolve() {
             </Button>
           </Link>
         </div>
-        <Badge variant="outline" className={`text-xs ${currentProblem.difficulty === "easy" ? "bg-green-500" : currentProblem.difficulty === "medium" ? "bg-yellow-500" : "bg-red-500"}`}>{currentProblem.difficulty}</Badge>
+        <Badge variant="outline" className={`text-xs ${currentProblem.difficulty === "easy" ? "bg-green-500" : currentProblem.difficulty === "medium" ? "bg-yellow-500" : "bg-red-500"}`}>{currentProblem.difficulty.toUpperCase()}</Badge>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -249,14 +255,23 @@ export default function ProblemSolve() {
                   <TabsTrigger value="description" className="data-[state=active]:bg-secondary">
                     <BookOpen className="w-4 h-4 mr-2" /> Description
                   </TabsTrigger>
-                  <TabsTrigger value="solutions" className="data-[state=active]:bg-secondary">
-                    <CheckCircle2 className="w-4 h-4 mr-2" /> Solutions
+                  <TabsTrigger value="Submissions" className="data-[state=active]:bg-secondary">
+                    <CheckCircle2 className="w-4 h-4 mr-2" /> Submissions
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="description" className="flex-1 overflow-y-auto min-h-0 m-0">
                   <div className="p-6 pb-20">
-                    <h1 className="text-2xl font-bold mb-4">{currentProblem.title}</h1>
+                    <div className="flex items-center justify-between mb-6">
+                      <h1 className="text-2xl font-bold mb-4">{currentProblem.title}</h1>
+                      {
+                        mySubmissions.length > 0 && (
+                          <div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 "><span className="text-green-500 "><CircleCheckBig /></span> Solved </p>
+                          </div>
+                        )
+                      }
+                    </div>
                     <div className="flex flex-wrap gap-2 mb-6">
                       {currentProblem.tags?.map((tag: string) => (
                         <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
@@ -302,7 +317,7 @@ export default function ProblemSolve() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="solutions" className="flex-1 overflow-y-auto min-h-0 m-0 p-0">
+                <TabsContent value="Submissions" className="flex-1 overflow-y-auto min-h-0 m-0 p-0">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="font-semibold text-lg flex items-center gap-2">

@@ -9,8 +9,13 @@ import {
   Target,
   BookOpen,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
+import { useProblem } from "../context/ProblemContext";
+import { useAuth } from "../context/AuthContext";
+import { Problem } from "../data/problems";
+import { useEffect } from "react";
 
 const stats = [
   { value: "2,500+", label: "Coding Problems" },
@@ -42,14 +47,45 @@ const features = [
   },
 ];
 
-const topProblems = [
-  { id: 1, title: "Two Sum", difficulty: "Easy", acceptance: 49.2 },
-  { id: 2, title: "Add Two Numbers", difficulty: "Medium", acceptance: 40.5 },
-  { id: 4, title: "Median of Two Sorted Arrays", difficulty: "Hard", acceptance: 36.1 },
-  { id: 5, title: "Valid Parentheses", difficulty: "Easy", acceptance: 40.7 },
-];
+// Helper to generate a "random" acceptance rate that stays consistent for the same problem ID
+const getAcceptanceRate = (id: string, difficulty: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
 
+  let min = 30, max = 60;
+  if (difficulty === "Easy") { min = 60; max = 95; }
+  if (difficulty === "Hard") { min = 10; max = 45; }
+
+  const random = Math.abs(hash % (max - min)) + min;
+  return random.toFixed(1);
+};
 export default function Index() {
+
+  // 1. Get Real Data from Context
+  const { problems, fetchAllProblems, loading } = useProblem();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    fetchAllProblems();
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex h-[80vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+
+  const topProblems: Problem[] = problems.slice(0, 4);
+
+
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -158,39 +194,44 @@ export default function Index() {
             </Link>
           </div>
 
-          <div className="grid gap-4">
-            {topProblems.map((problem, index) => (
-              <Link
-                key={problem.id}
-                to={`/problems/${problem.id}`}
-                className="glass-card p-4 flex items-center justify-between hover:border-primary/50 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground font-mono w-8">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-medium group-hover:text-primary transition-colors">
-                    {problem.title}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${problem.difficulty === "Easy"
-                        ? "bg-difficulty-easy"
-                        : problem.difficulty === "Medium"
-                          ? "bg-difficulty-medium"
-                          : "bg-difficulty-hard"
-                      }`}
+          <div className="grid gap-4 font-poppins">
+            {topProblems.map((problem, index) => {
+              const acceptanceRate = getAcceptanceRate(problem._id, problem.difficulty);
+              return (
+                <div key={problem._id}>
+                  <Link
+                    key={problem._id}
+                    to={`/problems/${problem.slug}`}
+                    className="glass-card p-4 flex items-center justify-between hover:border-primary/50 transition-all group"
                   >
-                    {problem.difficulty}
-                  </span>
-                  <span className="text-muted-foreground text-sm hidden sm:block">
-                    {problem.acceptance}% Acceptance
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div className="flex items-center gap-4">
+                      <span className="text-muted-foreground font-mono w-8">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="font-medium group-hover:text-primary transition-colors">
+                        {problem.title}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-white text-xs font-bold ${problem.difficulty === "easy"
+                          ? "bg-difficulty-easy"
+                          : problem.difficulty === "medium"
+                            ? "bg-difficulty-medium"
+                            : "bg-difficulty-hard"
+                          }`}
+                      >
+                        {problem.difficulty}
+                      </span>
+                      <span className="text-muted-foreground text-sm hidden sm:block">
+                        {acceptanceRate}% Acceptance
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -206,7 +247,7 @@ export default function Index() {
                 Ready to Level Up Your Skills?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Join millions of developers who are preparing for their dream jobs with LeetCode.
+                Join millions of developers who are preparing for their dream jobs with CodeForge.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">

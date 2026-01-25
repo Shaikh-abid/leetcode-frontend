@@ -886,7 +886,7 @@ export default function CreateProblem() {
                 <div className="space-y-2">
                   <Label>Problem Source (Optional)</Label>
                   <Input
-                    placeholder="e.g., LeetCode, Codeforces, Original"
+                    placeholder="e.g., CodeForge, Codeforces, Original"
                     className="bg-background"
                   />
                 </div>
@@ -905,11 +905,11 @@ export default function CreateProblem() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4 mt-8 pb-8">
-          <Button variant="outline" className="gap-2">
+          {/* <Button variant="outline" className="gap-2">
             <Eye className="w-4 h-4" />
             Preview
-          </Button>
-          <Button variant="hero" onClick={handleSubmit} className="gap-2">
+          </Button> */}
+          <Button onClick={handleSubmit} className="gap-2">
             <Save className="w-4 h-4" />
             Create Problem
           </Button>

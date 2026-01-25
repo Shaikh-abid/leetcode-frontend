@@ -37,7 +37,7 @@ export default function Login() {
 								<Code2 className="w-5 h-5 text-primary-foreground" />
 							</div>
 							<span className="text-2xl font-bold">
-								Leet<span className="text-primary">code</span>
+								Code<span className="text-primary">Forge</span>
 							</span>
 						</Link>
 						<h1 className="text-2xl font-bold mb-2">Welcome back</h1>

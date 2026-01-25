@@ -47,7 +47,8 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="#"
+                target="_blank"
+                href="https://github.com/Shaikh-abid"
                 className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-accent transition-colors"
               >
                 <Github className="w-4 h-4" />
@@ -59,7 +60,8 @@ export function Footer() {
                 <Twitter className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                target="_blank"
+                href="https://www.linkedin.com/in/abidali-shaikh-2422b5259/"
                 className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-accent transition-colors"
               >
                 <Linkedin className="w-4 h-4" />
@@ -89,7 +91,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 LeetCode. All rights reserved.
+            © 2026 CodeForge. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Made with ❤️ for developers worldwide

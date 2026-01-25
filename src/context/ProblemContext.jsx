@@ -98,7 +98,7 @@ const ProblemContextProvider = ({ children }) => {
             setMySubmissions(data.data);
         } catch (err) {
             console.error("Failed to fetch submissions", err);
-            toast.error("Could not load submission history");
+            // toast.error("Could not load submission history");
         }
     };
 
