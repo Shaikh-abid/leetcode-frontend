@@ -38,7 +38,7 @@ import { useProblem } from "../context/ProblemContext";
 import { usePlaylist } from "../context/PlaylistContext";
 import { Problem } from "../data/problems";
 
-// --- UPDATED INTERFACES TO MATCH MONGODB (_id) ---
+// --- INTERFACES ---
 interface PlaylistProblem {
   _id: string;
   title: string;
@@ -81,7 +81,6 @@ const initialUserProfile: UserProfileData = {
 export default function Profile() {
   const { updateUserProfileInfo, user } = useAuth();
 
-  // FIX 1: Destructure fetchAllProblems to load data
   const { problems, fetchAllProblems } = useProblem();
 
   const {
@@ -96,33 +95,51 @@ export default function Profile() {
 
   const [userProfile, setUserProfile] = useState<UserProfileData>(initialUserProfile);
 
-  // FIX 2: Fetch problems AND playlists on mount
   useEffect(() => {
     fetchPlaylists();
     fetchAllProblems();
   }, []);
 
-  // Calculate Real Stats
+  // --- UPDATED STATS CALCULATION ---
   const calculatedStats = useMemo(() => {
-    if (!user || !problems) return { total: 0, easy: 0, medium: 0, hard: 0, monthsActive: 0 };
+    // Default structure
+    const stats = {
+      total: { solved: 0, count: 0 },
+      easy: { solved: 0, count: 0 },
+      medium: { solved: 0, count: 0 },
+      hard: { solved: 0, count: 0 },
+      monthsActive: 0
+    };
+
+    if (!user || !problems) return stats;
 
     const solvedSet = new Set(user.solvedProblems || []);
-    let easy = 0, medium = 0, hard = 0;
 
+    // 1. Calculate problem counts (Total vs Solved)
     problems.forEach((p: Problem) => {
+      const diff = p.difficulty.toLowerCase() as "easy" | "medium" | "hard";
+
+      // Increment total count for this difficulty
+      if (stats[diff] !== undefined) {
+        stats[diff].count++;
+        stats.total.count++;
+      }
+
+      // Increment solved count if user solved it
       if (solvedSet.has(p._id)) {
-        const diff = p.difficulty.toLowerCase();
-        if (diff === "easy") easy++;
-        else if (diff === "medium") medium++;
-        else if (diff === "hard") hard++;
+        if (stats[diff] !== undefined) {
+          stats[diff].solved++;
+          stats.total.solved++;
+        }
       }
     });
 
+    // 2. Calculate Months Active
     const joined = new Date(user.createdAt || Date.now());
     const now = new Date();
-    const monthsActive = (now.getFullYear() - joined.getFullYear()) * 12 + (now.getMonth() - joined.getMonth()) || 1;
+    stats.monthsActive = (now.getFullYear() - joined.getFullYear()) * 12 + (now.getMonth() - joined.getMonth()) || 1;
 
-    return { total: solvedSet.size, easy, medium, hard, monthsActive };
+    return stats;
   }, [user, problems]);
 
   useEffect(() => {
@@ -141,9 +158,12 @@ export default function Profile() {
     }
   }, [user]);
 
-  const TOTAL_PLATFORM_PROBLEMS = problems.length || 2000;
-  const progressPercentage = (calculatedStats.total / TOTAL_PLATFORM_PROBLEMS) * 100;
+  // Percentage for the main circular progress bar
+  const totalProgressPercentage = calculatedStats.total.count > 0
+    ? (calculatedStats.total.solved / calculatedStats.total.count) * 100
+    : 0;
 
+  // --- UI STATE ---
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAddProblemsOpen, setIsAddProblemsOpen] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
@@ -199,8 +219,6 @@ export default function Profile() {
     });
   };
 
-  // --- API HANDLERS ---
-
   const handleCreatePlaylist = async () => {
     if (!newPlaylist.title.trim()) return;
     try {
@@ -251,6 +269,8 @@ export default function Profile() {
       default: return "";
     }
   };
+
+  const TOTAL_PLATFORM_PROBLEMS = 150;
 
   return (
     <Layout isLoggedIn>
@@ -401,7 +421,7 @@ export default function Profile() {
                 <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-primary/20 flex items-center justify-center">
                   <Code2 className="w-5 h-5 text-primary" />
                 </div>
-                <div className="text-3xl font-bold text-primary">{calculatedStats.total}</div>
+                <div className="text-3xl font-bold text-primary">{calculatedStats.total.solved}</div>
                 <div className="text-sm text-muted-foreground">Problems Solved</div>
               </div>
               <div className="glass-card p-4 text-center">
@@ -432,59 +452,110 @@ export default function Profile() {
               <h3 className="font-semibold mb-6">Solved Problems</h3>
 
               <div className="flex items-center gap-8 mb-6">
-                <div className="relative w-32 h-32">
+                {/* Circular Progress */}
+                <div className="relative w-32 h-32 flex-shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle className="stroke-secondary" strokeWidth="10" fill="transparent" r="52" cx="64" cy="64" />
+                    {/* 1. Background Circle (Gray) */}
+                    <circle 
+                      className="stroke-secondary" 
+                      strokeWidth="10" 
+                      fill="transparent" 
+                      r="52" cx="64" cy="64" 
+                    />
+                    
+                    {/* 2. Easy Segment (Green) */}
                     <circle
-                      className="stroke-primary"
+                      className="stroke-green-500 transition-all duration-1000 ease-out"
                       strokeWidth="10"
                       fill="transparent"
-                      r="52"
-                      cx="64"
-                      cy="64"
-                      strokeDasharray={`${progressPercentage * 3.27} 327`}
-                      strokeLinecap="round"
+                      r="52" cx="64" cy="64"
+                      strokeDasharray={`${(calculatedStats.easy.solved / TOTAL_PLATFORM_PROBLEMS) * 327} 327`}
+                      strokeDashoffset="0"
+                    />
+
+                    {/* 3. Medium Segment (Yellow) */}
+                    <circle
+                      className="stroke-yellow-500 transition-all duration-1000 ease-out"
+                      strokeWidth="10"
+                      fill="transparent"
+                      r="52" cx="64" cy="64"
+                      strokeDasharray={`${(calculatedStats.medium.solved / TOTAL_PLATFORM_PROBLEMS) * 327} 327`}
+                      strokeDashoffset={-((calculatedStats.easy.solved / TOTAL_PLATFORM_PROBLEMS) * 327)}
+                    />
+
+                    {/* 4. Hard Segment (Red) */}
+                    <circle
+                      className="stroke-red-500 transition-all duration-1000 ease-out"
+                      strokeWidth="10"
+                      fill="transparent"
+                      r="52" cx="64" cy="64"
+                      strokeDasharray={`${(calculatedStats.hard.solved / TOTAL_PLATFORM_PROBLEMS) * 327} 327`}
+                      strokeDashoffset={-(
+                        ((calculatedStats.easy.solved / TOTAL_PLATFORM_PROBLEMS) * 327) + 
+                        ((calculatedStats.medium.solved / TOTAL_PLATFORM_PROBLEMS) * 327)
+                      )}
                     />
                   </svg>
+                  
+                  {/* Center Text */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold">{calculatedStats.total}</span>
-                    <span className="text-xs text-muted-foreground">solved</span>
+                    <span className="text-3xl font-bold text-foreground">{calculatedStats.total.solved}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wide">Solved</span>
                   </div>
                 </div>
 
+                {/* Difficulty Breakdown */}
                 <div className="flex-1 space-y-4">
+                  {/* Easy */}
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-green-500 font-medium">Easy</span>
-                      <span className="text-muted-foreground">{calculatedStats.easy}</span>
+                      <span className="text-muted-foreground">
+                        {calculatedStats.easy.solved} <span className="text-muted-foreground/60">/ {calculatedStats.easy.count}</span>
+                      </span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full" style={{ width: `${(calculatedStats.easy / (calculatedStats.total || 1)) * 100}%` }} />
+                      <div
+                        className="h-full bg-green-500 rounded-full transition-all duration-500"
+                        style={{ width: `${calculatedStats.easy.count > 0 ? (calculatedStats.easy.solved / calculatedStats.easy.count) * 100 : 0}%` }}
+                      />
                     </div>
                   </div>
+                  {/* Medium */}
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-yellow-500 font-medium">Medium</span>
-                      <span className="text-muted-foreground">{calculatedStats.medium}</span>
+                      <span className="text-muted-foreground">
+                        {calculatedStats.medium.solved} <span className="text-muted-foreground/60">/ {calculatedStats.medium.count}</span>
+                      </span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${(calculatedStats.medium / (calculatedStats.total || 1)) * 100}%` }} />
+                      <div
+                        className="h-full bg-yellow-500 rounded-full transition-all duration-500"
+                        style={{ width: `${calculatedStats.medium.count > 0 ? (calculatedStats.medium.solved / calculatedStats.medium.count) * 100 : 0}%` }}
+                      />
                     </div>
                   </div>
+                  {/* Hard */}
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-red-500 font-medium">Hard</span>
-                      <span className="text-muted-foreground">{calculatedStats.hard}</span>
+                      <span className="text-muted-foreground">
+                        {calculatedStats.hard.solved} <span className="text-muted-foreground/60">/ {calculatedStats.hard.count}</span>
+                      </span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-red-500 rounded-full" style={{ width: `${(calculatedStats.hard / (calculatedStats.total || 1)) * 100}%` }} />
+                      <div
+                        className="h-full bg-red-500 rounded-full transition-all duration-500"
+                        style={{ width: `${calculatedStats.hard.count > 0 ? (calculatedStats.hard.solved / calculatedStats.hard.count) * 100 : 0}%` }}
+                      />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* My Playlists */}
+            {/* My Playlists (REAL DATA) */}
             <div className="glass-card p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
@@ -501,7 +572,9 @@ export default function Profile() {
                   <DialogContent className="glass-card border-border">
                     <DialogHeader>
                       <DialogTitle>Create New Playlist</DialogTitle>
-                      <DialogDescription>Create a playlist to organize your favorite problems</DialogDescription>
+                      <DialogDescription>
+                        Create a playlist to organize your favorite problems
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <div>
@@ -650,7 +723,6 @@ export default function Profile() {
                   </div>
                   <div className="max-h-[400px] overflow-y-auto space-y-2">
                     {filteredProblemsForPlaylist.map((problem: Problem) => {
-                      // FIX 3: Use string ID comparison
                       const isAdded = selectedPlaylistId ? isProblemInPlaylist(selectedPlaylistId, problem._id) : false;
 
                       return (
@@ -677,7 +749,6 @@ export default function Profile() {
                                   if (isAdded) {
                                     handleRemoveProblem(selectedPlaylistId, problem._id);
                                   } else {
-                                    // FIX 4: Pass ID string directly to the helper function
                                     handleAddProblem(selectedPlaylistId, problem._id);
                                   }
                                 }

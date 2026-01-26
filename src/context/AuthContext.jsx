@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom"
 import AuthService from '../services/AuthService';
@@ -15,8 +14,6 @@ export const AuthContextProvider = ({ children }) => {
 
     // 1. Check if user is already logged in (Persist User)
     useEffect(() => {
-        // For a simple resume project, we can store the basic user info in localStorage
-        // ideally, you'd hit an endpoint like /api/auth/me here using the cookie
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             setUser(JSON.parse(storedUser));
@@ -30,17 +27,9 @@ export const AuthContextProvider = ({ children }) => {
         setError(null);
         try {
             const data = await AuthService.LoginService(formData);
-
-            // Save user to state
             setUser(data.user);
-
-            // Save to local storage (so they stay logged in on refresh)
             localStorage.setItem("user", JSON.stringify(data.user));
-
-            // If your backend returns an accessToken, you might want to store it too
-            // localStorage.setItem("token", data.accessToken); 
-
-            navigate("/problems"); // Redirect to problems page
+            navigate("/problems");
             toast.success("Login successful");
             return data;
         } catch (err) {
@@ -58,7 +47,6 @@ export const AuthContextProvider = ({ children }) => {
         setError(null);
         try {
             const data = await AuthService.RegisterService(formData);
-            // Usually, after register, we redirect to login or auto-login
             navigate("/login");
             toast.success("Registration successful");
             return data;
@@ -77,7 +65,6 @@ export const AuthContextProvider = ({ children }) => {
             await AuthService.LogoutService();
             setUser(null);
             localStorage.removeItem("user");
-            // localStorage.removeItem("token");
             navigate("/");
         } catch (err) {
             console.error("Logout failed", err);
@@ -86,9 +73,7 @@ export const AuthContextProvider = ({ children }) => {
 
     // 5. Google Login Trigger
     const googleLogin = () => {
-        // We do NOT use axios for this. We must redirect the browser window.
-        // The AuthService.GoogleLoginService isn't needed here strictly.
-        window.location.href = "http://localhost:5000/api/auth/google";
+        window.location.href = "https://leetcode-backend-main.onrender.com/api/auth/google";
     };
 
     const updateUserProfileInfo = async (formData) => {
@@ -107,6 +92,27 @@ export const AuthContextProvider = ({ children }) => {
         }
     };
 
+    // ------------------------------------------------------------------
+    // 👇 NEW FUNCTION: Manually update local state when problem is solved
+    // ------------------------------------------------------------------
+    const markProblemAsSolved = (problemId) => {
+        if (!user) return;
+
+        // Avoid duplicates if it's already there
+        if (!user.solvedProblems.includes(problemId)) {
+            const updatedUser = {
+                ...user,
+                solvedProblems: [...user.solvedProblems, problemId]
+            };
+
+            // Update State (triggers re-render)
+            setUser(updatedUser);
+
+            // Update LocalStorage (persists on reload)
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -117,6 +123,7 @@ export const AuthContextProvider = ({ children }) => {
             logout,
             googleLogin,
             updateUserProfileInfo,
+            markProblemAsSolved, // <--- Export the new function
             isAuthenticated: !!user,
         }}>
             {children}
@@ -132,4 +139,3 @@ export const useAuth = () => {
     }
     return context;
 };
-

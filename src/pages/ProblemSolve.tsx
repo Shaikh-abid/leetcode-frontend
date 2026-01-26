@@ -29,7 +29,6 @@ import {
   XCircle,
   Loader2,
   BookOpen,
-  MessageSquare,
   History,
   Code,
   Calendar,
@@ -99,9 +98,10 @@ const StyledText = ({ text, isConstraint = false }: { text: string; isConstraint
 export default function ProblemSolve() {
   const { slug } = useParams();
   const { fetchProblem, currentProblem, problems, error, loading, runUserCode, finalSubmit, fetchSubmissions, mySubmissions } = useProblem();
-  const { user } = useAuth();
+  
+  // 👇 1. Destructure the new function from useAuth
+  const { user, markProblemAsSolved } = useAuth(); 
 
-  // 1. Add state to track the expanded submission
   const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(null);
 
   const toggleSubmission = (id: string) => {
@@ -113,7 +113,6 @@ export default function ProblemSolve() {
   const [isRunning, setIsRunning] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
 
-  // Stores the detailed result object from the API
   const [result, setResult] = useState<ExecutionResult | null>(null);
 
   useEffect(() => {
@@ -144,12 +143,11 @@ export default function ProblemSolve() {
 
   const handleRun = async () => {
     setIsRunning(true);
-    setResult(null); // Clear previous results
+    setResult(null);
 
     try {
-      // Call the API
       const res = await runUserCode(language, code, slug);
-      setResult(res); // Store the full object, not just a string
+      setResult(res);
     } catch (error) {
       setResult({
         success: false,
@@ -163,24 +161,25 @@ export default function ProblemSolve() {
 
   const handleSubmit = async () => {
     setIsRunning(true);
-    setResult(null); // Optional: Clear previous run results or keep them
+    setResult(null);
 
     try {
-      // 1. Call the Context function
       const res = await finalSubmit(language, code, slug);
-
-      // 2. Set the result to display detailed output (Test cases)
       setResult(res);
 
       if (res.status === "Accepted" || res.status === "Wrong Answer") {
-        // 👇 REFRESH HISTORY IMMEDIATELY
         fetchSubmissions(slug);
       }
 
-      // 3. Show Toast Notification based on status
       if (res.status === "Accepted") {
         toast.success("Problem Solved! 🎉");
-        // Optional: Play a sound effect here
+        
+        // 👇 2. CALL THE UPDATE FUNCTION HERE
+        // This updates the global user state instantly
+        if (currentProblem && currentProblem._id) {
+            markProblemAsSolved(currentProblem._id);
+        }
+
       } else if (res.status === "Wrong Answer") {
         toast.error("Solution was not accepted. Check test cases.");
       } else {
@@ -193,6 +192,7 @@ export default function ProblemSolve() {
       setIsRunning(false);
     }
   };
+  
   const handleReset = () => {
     if (currentProblem?.starterCode) {
       setCode(currentProblem.starterCode[language] || "");
@@ -221,6 +221,11 @@ export default function ProblemSolve() {
     toast.error("You must be logged in to solve problems.");
     return <Navigate to="/login" />;
   }
+
+  // Helper check for "Solved" badge at top of description
+  // Note: currentProblem might not be in user.solvedProblems array yet during this render cycle if we don't force a check,
+  // but since we updated context, it should re-render and show TRUE.
+  const isSolved = user.solvedProblems?.includes(currentProblem._id);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -265,7 +270,8 @@ export default function ProblemSolve() {
                     <div className="flex items-center justify-between mb-6">
                       <h1 className="text-2xl font-bold mb-4">{currentProblem.title}</h1>
                       {
-                        mySubmissions.length > 0 && (
+                        // 👇 3. Use the dynamic check here
+                        isSolved && (
                           <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-2 "><span className="text-green-500 "><CircleCheckBig /></span> Solved </p>
                           </div>
