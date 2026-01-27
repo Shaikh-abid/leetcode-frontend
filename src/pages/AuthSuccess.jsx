@@ -1,43 +1,52 @@
-import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom"; // Use 'next/navigation' if using Next.js
-import { useAuth } from "../context/AuthContext";
+import { useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import axiosInstance from "@/lib/axiosInstance"; // Make sure this path is correct
+import { useAuth } from "../context/AuthContext"; // Import AuthContext to use setUser
 
 export default function AuthSuccess() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setUser } = useAuth(); // We need to expose setUser in Context (see note below) or use a login helper
+    const { setUser } = useAuth(); // We need to update Context directly
+    const hasFetched = useRef(false); // Prevent double-firing in React StrictMode
 
     useEffect(() => {
-        const token = searchParams.get("token");
-        const userString = searchParams.get("user");
+        const code = searchParams.get("code");
 
-        if (token && userString) {
-            try {
-                const user = JSON.parse(decodeURIComponent(userString));
+        if (code && !hasFetched.current) {
+            hasFetched.current = true; // Mark as running
 
-                // 1. Save to Local Storage
-                localStorage.setItem("token", token); // Save Access Token
-                localStorage.setItem("user", JSON.stringify(user)); // Save User Details
+            const exchangeToken = async () => {
+                try {
+                    // Call the new backend endpoint
+                    const { data } = await axiosInstance.post("/api/auth/google-success", { code });
 
-                // 2. Update Context State (Force reload or set state)
-                // If your useAuth doesn't export setUser, a window.location.reload() is a quick hack
-                // But better to add setUser to your AuthContext values.
-                window.location.href = "/problems"; // Redirect to main app
+                    if (data.success) {
+                        // 1. Save User Data
+                        localStorage.setItem("user", JSON.stringify(data.user));
 
-            } catch (error) {
-                console.error("Failed to parse user data", error);
-                navigate("/auth/login");
-            }
-        } else {
-            navigate("/auth/login");
+                        // 2. Update Context (so we don't need to reload page)
+                        setUser(data.user);
+
+                        // 3. Navigate to Problems
+                        navigate("/problems");
+                    }
+                } catch (error) {
+                    console.error("Google Login Failed:", error);
+                    navigate("/login?error=FailedToExchange");
+                }
+            };
+
+            exchangeToken();
+        } else if (!code) {
+            navigate("/login");
         }
-    }, [searchParams, navigate]);
+    }, [searchParams, navigate, setUser]);
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-background">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <h2 className="mt-4 text-lg font-medium">Logging you in...</h2>
+            <h2 className="mt-4 text-lg font-medium">Finalizing secure login...</h2>
         </div>
     );
 }
