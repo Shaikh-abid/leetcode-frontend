@@ -117,7 +117,7 @@ export default function Index() {
                 user ? (
                   <Link to="/problems">
                     <Button variant="outline" size="xl">
-                      Explore Problems
+                      Start Coding Free
                     </Button>
                   </Link>
                 ) : (
