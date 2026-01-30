@@ -148,25 +148,40 @@ export function Navbar() {
                     {link.name}
                   </Link>
                 ))}
-                <Link
-                  to="/create-problem"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-lg text-sm font-medium text-primary bg-primary/10"
-                >
-                  Create Problem
-                </Link>
-                <div className="flex gap-2 pt-4 border-t border-border/50 mt-2">
-                  <Link to="/login" className="flex-1">
-                    <Button variant="ghost" className="w-full">
-                      Sign In
-                    </Button>
+                {user?.isAdmin && (
+                  <Link
+                    to="/create-problem"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-3 rounded-lg text-sm font-medium text-primary bg-primary/10"
+                  >
+                    Create Problem
                   </Link>
-                  <Link to="/signup" className="flex-1">
-                    <Button variant="hero" className="w-full">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
+                )}
+                {
+                  isAuthenticated ? (
+                    <>
+                      <Link to="/profile">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <User className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button onClick={handleLogout} variant="ghost" size="icon" className="h-8 w-8">
+                        <LogOut className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login">
+                        <Button variant="ghost" size="sm">Sign In</Button>
+                      </Link>
+                      <Link to="/signup">
+                        <Button variant="hero" size="sm">
+                          Get Started
+                        </Button>
+                      </Link>
+                    </>
+                  )
+                }
               </div>
             </div>
           )}

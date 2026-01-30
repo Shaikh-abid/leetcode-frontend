@@ -113,12 +113,22 @@ export default function Index() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
-              <Link to="/signup">
-                <Button variant="hero" size="xl">
-                  Start Coding Free
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
+              {
+                user ? (
+                  <Link to="/problems">
+                    <Button variant="outline" size="xl">
+                      Explore Problems
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/signup">
+                    <Button variant="hero" size="xl">
+                      Start Coding Free
+                      <ArrowRight className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                )
+              }
               <Link to="/problems">
                 <Button variant="outline" size="xl">
                   Explore Problems
@@ -250,11 +260,21 @@ export default function Index() {
                 Join millions of developers who are preparing for their dream jobs with CodeForge.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/signup">
-                  <Button variant="hero" size="lg">
-                    Get Started for Free
-                  </Button>
-                </Link>
+                {
+                  user ? (
+                    <Link to="/problems">
+                      <Button variant="hero" size="lg">
+                        Get Started for Free
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link to="/signup">
+                      <Button variant="hero" size="lg">
+                        Get Started for Free
+                      </Button>
+                    </Link>
+                  )
+                }
               </div>
               <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
