@@ -12,6 +12,7 @@ import CreateProblem from "./pages/CreateProblem";
 import Roadmaps from "./pages/Roadmaps";
 import NotFound from "./pages/NotFound";
 import RoadmapDetail from "./pages/RoadmapDetail";
+import CodeReviewer from "./pages/CodeReviewer";
 import { AuthContextProvider } from "./context/AuthContext";
 import AuthSuccess from "./pages/AuthSuccess";
 import ProblemContextProvider from "./context/ProblemContext";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/roadmaps" element={<Roadmaps />} />
               <Route path="/roadmaps/:id" element={<RoadmapDetail />} />
               <Route path="/auth-success" element={<AuthSuccess />} />
+              <Route path="/code-reviewer" element={<CodeReviewer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PlaylistContextProvider>
