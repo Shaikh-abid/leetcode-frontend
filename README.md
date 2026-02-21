@@ -1,73 +1,216 @@
-# Welcome to your Lovable project
+<div align="center">
 
-## Project info
+# 🧠 LeetCode Practice Platform
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+### A full-featured coding practice platform inspired by LeetCode — built with React, TypeScript & Node.js
 
-## How can I edit this code?
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 
-There are several ways of editing your application.
+[Live Demo](#) · [Report Bug](https://github.com/Shaikh-abid/leetcode-frontend/issues) · [Request Feature](https://github.com/Shaikh-abid/leetcode-frontend/issues)
 
-**Use Lovable**
+</div>
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📋 Table of Contents
 
-**Use your preferred IDE**
+- [About the Project](#-about-the-project)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the App](#running-the-app)
+- [Project Structure](#-project-structure)
+- [Screenshots](#-screenshots)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Contact](#-contact)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 About the Project
 
-Follow these steps:
+**LeetCode Practice Platform** is a full-stack web application designed to help developers level up their problem-solving skills. Inspired by LeetCode, this platform provides an intuitive and beautiful interface to browse coding problems, write and execute code, and track your progress — all in one place.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Whether you're preparing for technical interviews or sharpening your algorithms knowledge, this platform has you covered.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+> Built as a passion project to reimagine the coding practice experience with a modern, clean UI and smooth developer experience.
 
-# Step 3: Install the necessary dependencies.
-npm i
+---
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+## ✨ Features
+
+| Feature | Description |
+|--------|-------------|
+| 🖊️ **Code Editor & Submission** | Write, run, and submit code with a rich in-browser editor |
+| 📋 **Problem Listing & Filtering** | Browse problems by difficulty, topic, and status |
+| 🔐 **User Authentication** | Secure sign-up, login, and session management |
+| 🌙 **Dark Mode** | Toggle between light and dark themes effortlessly |
+| 📊 **Progress Tracking** | Monitor your solved problems, streaks, and statistics |
+| 📱 **Responsive Design** | Optimized for desktop, tablet, and mobile screens |
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- **[React.js](https://reactjs.org/)** — Component-based UI library
+- **[TypeScript](https://www.typescriptlang.org/)** — Strongly typed JavaScript
+- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
+
+### Backend
+- **[Node.js](https://nodejs.org/)** — JavaScript runtime
+- **[Express.js](https://expressjs.com/)** — Fast, minimalist web framework
+
+---
+
+## 🏁 Getting Started
+
+Follow these steps to get a local copy up and running.
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- **Node.js** (v18 or above) — [Download](https://nodejs.org/)
+- **npm** or **yarn**
+
+```bash
+node -v
+npm -v
+```
+
+### Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/Shaikh-abid/leetcode-frontend.git
+cd leetcode-frontend
+```
+
+2. **Install frontend dependencies**
+
+```bash
+cd client
+npm install
+```
+
+3. **Install backend dependencies**
+
+```bash
+cd ../server
+npm install
+```
+
+4. **Set up environment variables**
+
+Create a `.env` file in the `server` directory:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+```
+
+Create a `.env` file in the `client` directory:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+### Running the App
+
+**Start the backend server:**
+
+```bash
+cd server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+**Start the frontend (in a new terminal):**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+cd client
+npm run dev
+```
 
-**Use GitHub Codespaces**
+Open [http://localhost:5173](http://localhost:5173) in your browser to see the app.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 📁 Project Structure
 
-This project is built with:
+```
+leetcode-frontend/
+├── client/                  # React frontend
+│   ├── public/
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Page-level components
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── context/         # Global state (auth, theme)
+│   │   ├── types/           # TypeScript interfaces & types
+│   │   ├── utils/           # Helper functions
+│   │   └── App.tsx
+│   ├── tailwind.config.ts
+│   └── package.json
+│
+├── server/                  # Node.js + Express backend
+│   ├── controllers/         # Route handlers
+│   ├── models/              # Database models
+│   ├── routes/              # API routes
+│   ├── middleware/          # Auth & error middleware
+│   └── server.js
+│
+└── README.md
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 📸 Screenshots
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+> _Screenshots / GIFs of the app can be added here._
 
-## Can I connect a custom domain to my Lovable project?
+| Problem List | Code Editor | Dashboard |
+|---|---|---|
+| ![Problem List](https://via.placeholder.com/280x180?text=Problem+List) | ![Code Editor](https://via.placeholder.com/280x180?text=Code+Editor) | ![Dashboard](https://via.placeholder.com/280x180?text=Dashboard) |
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🤝 Contributing
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 📬 Contact
+
+**Shaikh Abid**
+
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Shaikh-abid)
+
+Project Link: [https://github.com/Shaikh-abid/leetcode-frontend](https://github.com/Shaikh-abid/leetcode-frontend)
+
+---
+
+<div align="center">
+  Made with ❤️ by <a href="https://github.com/Shaikh-abid">Shaikh Abid</a>
+</div>
